@@ -6,6 +6,7 @@ const ethers = require('ethers');
 const { utils, Wallet } = require('ethers');
 const { sendTransaction, balanceOf, call, Eth, onReceipt } = require('ethjs-extras');
 import styled from 'hyperapp-styled-components';
+import moment from 'moment';
 
 // change global style..
 styled.injectGlobal`
@@ -26,9 +27,18 @@ const state = {
   location: location.state,
   error: null,
   results: [
-    'Welcome to EthToolBox brought to you by Ethers.js, the Eth Community and Nick Dodson ;)',
+    (<span>Welcome to EthToolBox brought to you by Ethers.js, the Eth Community and Nick Dodson <a href="https://twitter.com/iamnickdodson" target="_blank">@IAmNickDodson</a> ;)</span>),
     'Tip: you can access Ethers directly using Eval e.g. ethers.utils.bigNumberify("12").toHexString()',
   ],
+  timestamp: Math.round(new Date().getTime()/1000),
+  timestring: (new Date()).toLocaleString(undefined, {
+    day: 'numeric',
+    month: 'numeric',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+    timeZone: 'UTC',
+  }),
   errors: [],
 };
 
@@ -110,10 +120,29 @@ const actions = {
       actions.result(`utf8("${state.inputA || ''}") => ${utils.toUtf8String(state.inputA || '')}`);
     } catch (error) { actions.error(error); }
   },
+  time: val => (state, actions) => {
+    try {
+      actions.change({ timestring: val, timestamp: moment(val).format('X'), });
+    } catch (error) {
+      actions.change({ timestring: val });
+    }
+  },
+  entropy: len => (state, actions) => {
+    try {
+      actions.result(`randomBytes(${len}) => ${utils.hexlify(utils.randomBytes(len))}`);
+    } catch (error) {
+    }
+  },
   eval: () => (state, actions) => {
     try {
       actions.result(`eval("${state.inputB || ''}") => ${eval(state.inputB || '')}`);
     } catch (error) { actions.error(error); }
+  },
+  ensHash: val => (state, actions) => {
+    try {
+      actions.result(`namehash(${val}) => ${utils.namehash(val)}`);
+    } catch (error) {
+    }
   },
   error: val => (state, actions) => {
     actions.result(String(val.message));
@@ -188,13 +217,14 @@ const Button = styled.button`
 
 const Results = styled.div`
   margin-top: 30px;
-  width: 100%;
+  width: 40%;
   position: absolute;
+  word-wrap: break-word;
   padding: 20px;
   bottom: 0px;
-  height: 25%;
+  top: 0px;
+  height: 100%;
   right: 0px;
-  left: 0px;
   overflow: scroll;
 `;
 
@@ -207,7 +237,7 @@ const Code = () => (state, actions) => (
     <Wrapper>
       <Column style="display: flex; flex-direction: column; width: 500px;">
         <h1>EthToolBox</h1>
-        <small style="margin-top: -15px"><i>built with <a href="https://github.com/ethers-io/ethers.js" target="_blank">ethers.js</a></i></small>
+        <small style="margin-top: -15px"><i>built with <a href="https://github.com/ethers-io/ethers.js" target="_blank">ethers.js</a> and <a href="https://github.com/ethjs" target="_blank">ethjs</a></i></small>
         <div>
           <br />
           <h4>String & Hex Tools</h4>
@@ -240,13 +270,36 @@ const Code = () => (state, actions) => (
       </Column>
 
       <Column>
-        <h3>Current Unix Timestamp</h3>
-        <div>{Math.round(new Date().getTime()/1000)} <small style="cursor: pointer; user-select: none;" onclick={e => actions.change({})}>refresh</small></div>
-      </Column>
-    </Wrapper>
+        <h3>Date Tools (UTC)</h3>
+        <div><input type="text" style="padding: 20px;" value={state.timestring} oninput={e => actions.time(e.target.value)} /></div>
+        <br />
+        <div>{state.timestamp} <small style="cursor: pointer; user-select: none;" onclick={e => actions.time((new Date()).toLocaleString(undefined, {
+          day: 'numeric',
+          month: 'numeric',
+          year: 'numeric',
+          hour: '2-digit',
+          minute: '2-digit',
+          timeZone: 'UTC',
+        }))}>refresh</small></div>
 
-    <Results>{state.results.concat(state.errors).reverse()
-      .map((v, i) => (<div style="margin-top: 10px;">{state.results.concat(state.errors).length - i}) {v}</div>))}</Results>
+        <br /><br /><br />
+
+        <h3>Entropy Tools</h3>
+        <Button onclick={e => actions.entropy(20)}>20 Bytes</Button>
+        <Button onclick={e => actions.entropy(64)}>64 Bytes</Button>
+        <Button onclick={e => actions.entropy(96)}>96 Bytes</Button>
+        <Button onclick={e => actions.entropy(128)}>128 Bytes</Button>
+
+        <br /><br /><br />
+
+        <h3>ENS Tools</h3>
+        <input type="text" style="padding: 15px; margin-right: 10px;" state={state.ensName || ''} oninput={e => actions.change({ ensName: e.target.value || '' })} placeholder="ricmoo.firefly.eth" />
+        <Button onclick={e => actions.ensHash(state.ensName)}>Hash</Button>
+      </Column>
+
+      <Results>{state.results.concat(state.errors).reverse()
+        .map((v, i) => (<div style="margin-top: 10px;">{state.results.concat(state.errors).length - i}) {v}</div>))}</Results>
+    </Wrapper>
   </div>
 );
 
