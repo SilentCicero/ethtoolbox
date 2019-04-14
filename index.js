@@ -110,6 +110,22 @@ const actions = {
       actions.result(`wei("${state.inputB || ''}") => ${utils.formatEther(state.inputB || '')} ether`);
     } catch (error) { actions.error(error); }
   },
+  pad32Left: () => (state, actions) => {
+    try {
+      actions.result(`pad32("${state.inputB || ''}") => ${utils.hexZeroPad(state.inputB || '', 32)}`);
+    } catch (error) { actions.error(error); }
+  },
+  generateKey: () => (state, actions) => {
+    try {
+      let privateKey = utils.randomBytes(32);
+      let wallet = new ethers.Wallet(privateKey);
+
+      actions.result((<div>new Wallet() => [ <br />
+        Private Key: <br /> {wallet.privateKey} <br /> <br />
+        Address: <br /> {wallet.address} <br />
+      ]</div>));
+    } catch (error) { actions.error(error); }
+  },
   bignumber: () => (state, actions) => {
     try {
       actions.result(`BN("${state.inputB || ''}").toString(10) => ${utils.hexlify(utils.bigNumberify(state.inputB || ''))}`);
@@ -198,7 +214,13 @@ const Wrapper = styled.div`
   padding: 20px;
   display: flex;
   flex-direction: row;
-  height: 75%;
+  height: 100%;
+  width: 60%;
+  position: absolute;
+  left: 0px;
+  top: 0px;
+  bottom: 0px;
+  flex-wrap: wrap;
 `;
 
 const TextArea = styled.textarea`
@@ -266,6 +288,7 @@ const Code = () => (state, actions) => (
           <Button onclick={actions.toWei}>Ether</Button>
           <Button onclick={actions.toGWei}>Gwei</Button>
           <Button onclick={actions.toEther}>Wei</Button>
+          <Button onclick={actions.pad32Left}>Pad32(Left)</Button>
         </div>
       </Column>
 
@@ -295,11 +318,16 @@ const Code = () => (state, actions) => (
         <h3>ENS Tools</h3>
         <input type="text" style="padding: 15px; margin-right: 10px;" state={state.ensName || ''} oninput={e => actions.change({ ensName: e.target.value || '' })} placeholder="ricmoo.firefly.eth" />
         <Button onclick={e => actions.ensHash(state.ensName)}>Hash</Button>
-      </Column>
+        
+        <br /><br /><br />
 
-      <Results>{state.results.concat(state.errors).reverse()
-        .map((v, i) => (<div style="margin-top: 10px;">{state.results.concat(state.errors).length - i}) {v}</div>))}</Results>
+        <h4>Key Tools</h4>
+        <Button onclick={actions.generateKey}>Generate Key</Button>
+      </Column>
     </Wrapper>
+
+    <Results>{state.results.concat(state.errors).reverse()
+      .map((v, i) => (<div style="margin-top: 10px;">{state.results.concat(state.errors).length - i}) {v}</div>))}</Results>
   </div>
 );
 

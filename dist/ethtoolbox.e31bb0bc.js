@@ -14692,7 +14692,7 @@ function _templateObject3() {
 }
 
 function _templateObject2() {
-  var data = _taggedTemplateLiteral(["\n  padding: 20px;\n  display: flex;\n  flex-direction: row;\n  height: 75%;\n"]);
+  var data = _taggedTemplateLiteral(["\n  padding: 20px;\n  display: flex;\n  flex-direction: row;\n  height: 100%;\n  width: 60%;\n  position: absolute;\n  left: 0px;\n  top: 0px;\n  bottom: 0px;\n  flex-wrap: wrap;\n"]);
 
   _templateObject2 = function _templateObject2() {
     return data;
@@ -14856,6 +14856,26 @@ var actions = {
     return function (state, actions) {
       try {
         actions.result("wei(\"".concat(state.inputB || '', "\") => ").concat(utils.formatEther(state.inputB || ''), " ether"));
+      } catch (error) {
+        actions.error(error);
+      }
+    };
+  },
+  pad32Left: function pad32Left() {
+    return function (state, actions) {
+      try {
+        actions.result("pad32(\"".concat(state.inputB || '', "\") => ").concat(utils.hexZeroPad(state.inputB || '', 32)));
+      } catch (error) {
+        actions.error(error);
+      }
+    };
+  },
+  generateKey: function generateKey() {
+    return function (state, actions) {
+      try {
+        var privateKey = utils.randomBytes(32);
+        var wallet = new ethers.Wallet(privateKey);
+        actions.result((0, _hyperapp.h)("div", null, "new Wallet() => [ ", (0, _hyperapp.h)("br", null), "Private Key: ", (0, _hyperapp.h)("br", null), " ", wallet.privateKey, " ", (0, _hyperapp.h)("br", null), " ", (0, _hyperapp.h)("br", null), "Address: ", (0, _hyperapp.h)("br", null), " ", wallet.address, " ", (0, _hyperapp.h)("br", null), "]"));
       } catch (error) {
         actions.error(error);
       }
@@ -15040,7 +15060,9 @@ var Code = function Code() {
       onclick: actions.toGWei
     }, "Gwei"), (0, _hyperapp.h)(Button, {
       onclick: actions.toEther
-    }, "Wei"))), (0, _hyperapp.h)(Column, null, (0, _hyperapp.h)("h3", null, "Date Tools (UTC)"), (0, _hyperapp.h)("div", null, (0, _hyperapp.h)("input", {
+    }, "Wei"), (0, _hyperapp.h)(Button, {
+      onclick: actions.pad32Left
+    }, "Pad32(Left)"))), (0, _hyperapp.h)(Column, null, (0, _hyperapp.h)("h3", null, "Date Tools (UTC)"), (0, _hyperapp.h)("div", null, (0, _hyperapp.h)("input", {
       type: "text",
       style: "padding: 20px;",
       value: state.timestring,
@@ -15089,11 +15111,13 @@ var Code = function Code() {
       onclick: function onclick(e) {
         return actions.ensHash(state.ensName);
       }
-    }, "Hash")), (0, _hyperapp.h)(Results, null, state.results.concat(state.errors).reverse().map(function (v, i) {
+    }, "Hash"), (0, _hyperapp.h)("br", null), (0, _hyperapp.h)("br", null), (0, _hyperapp.h)("br", null), (0, _hyperapp.h)("h4", null, "Key Tools"), (0, _hyperapp.h)(Button, {
+      onclick: actions.generateKey
+    }, "Generate Key"))), (0, _hyperapp.h)(Results, null, state.results.concat(state.errors).reverse().map(function (v, i) {
       return (0, _hyperapp.h)("div", {
         style: "margin-top: 10px;"
       }, state.results.concat(state.errors).length - i, ") ", v);
-    }))));
+    })));
   };
 }; // routes for app
 
@@ -15138,7 +15162,7 @@ var parent = module.bundle.parent;
 if ((!parent || !parent.isParcelRequire) && typeof WebSocket !== 'undefined') {
   var hostname = "" || location.hostname;
   var protocol = location.protocol === 'https:' ? 'wss' : 'ws';
-  var ws = new WebSocket(protocol + '://' + hostname + ':' + "46021" + '/');
+  var ws = new WebSocket(protocol + '://' + hostname + ':' + "37815" + '/');
 
   ws.onmessage = function (event) {
     var data = JSON.parse(event.data);
