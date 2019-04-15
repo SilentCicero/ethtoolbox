@@ -14651,8 +14651,18 @@ var _moment = _interopRequireDefault(require("moment"));
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-function _templateObject6() {
+function _templateObject7() {
   var data = _taggedTemplateLiteral(["\n  margin-left: 20px;\n  padding-bottom: 100px;\n"]);
+
+  _templateObject7 = function _templateObject7() {
+    return data;
+  };
+
+  return data;
+}
+
+function _templateObject6() {
+  var data = _taggedTemplateLiteral(["\n  position: absolute;\n  display: block;\n  line-height: 15px;\n  padding-top: 0px;\n  bottom: 0px;\n  height: 40px;\n  margin-bottom: 10px;\n  right: 35px;\n  padding-right: 20px;\n  padding-left: 23px;\n  border: 0px;\n  letter-spacing: .5px;\n  font-size: 15px;\n  width: 40%;\n  outline: none;\n  background: url(https://png.pngtree.com/svg/20160727/0bf24b248b.svg);\n  background-position: 0px 10px;\n  background-repeat: no-repeat;\n  background-size: 20px 20px;\n\n  &:focus {\n    color: none;\n    outline: none;\n  }\n"]);
 
   _templateObject6 = function _templateObject6() {
     return data;
@@ -14662,7 +14672,7 @@ function _templateObject6() {
 }
 
 function _templateObject5() {
-  var data = _taggedTemplateLiteral(["\n  margin-top: 30px;\n  width: 40%;\n  position: absolute;\n  word-wrap: break-word;\n  padding: 20px;\n  bottom: 0px;\n  top: 0px;\n  height: 100%;\n  right: 0px;\n  overflow: scroll;\n"]);
+  var data = _taggedTemplateLiteral(["\n  width: 40%;\n  position: absolute;\n  word-wrap: break-word;\n  padding: 20px;\n  bottom: 50px;\n  top: 0px;\n  right: 0px;\n  overflow: scroll;\n  overflow-x: hidden;\n"]);
 
   _templateObject5 = function _templateObject5() {
     return data;
@@ -14738,7 +14748,7 @@ var state = {
   results: [(0, _hyperapp.h)("span", null, "Welcome to EthToolBox brought to you by Ethers.js, the Eth Community and Nick Dodson ", (0, _hyperapp.h)("a", {
     href: "https://twitter.com/iamnickdodson",
     target: "_blank"
-  }, "@IAmNickDodson"), " ;)"), 'Tip: you can access Ethers directly using Eval e.g. ethers.utils.bigNumberify("12").toHexString()'],
+  }, "@IAmNickDodson"), " ;)"), 'Tip: you can access Ethers directly using the console e.g. ethers.utils.bigNumberify("12").toHexString()'],
   abi: {},
   timestamp: Math.round(new Date().getTime() / 1000),
   timestring: new Date().toLocaleString(undefined, {
@@ -14788,6 +14798,11 @@ var actions = {
       actions.change({
         results: state.results.concat([val])
       });
+      var elm = document.getElementById('results'); // scroll to bottom
+
+      setTimeout(function (e) {
+        elm.scrollTop = elm.scrollHeight;
+      }, 50);
     };
   },
   onAbi: function onAbi(val) {
@@ -14928,6 +14943,15 @@ var actions = {
       }
     };
   },
+  console: function console(val) {
+    return function (state, actions) {
+      try {
+        actions.result("".concat(eval(val)));
+      } catch (error) {
+        actions.error(error);
+      }
+    };
+  },
   time: function time(val) {
     return function (state, actions) {
       try {
@@ -15035,7 +15059,9 @@ var Button = _hyperappStyledComponents.default.button(_templateObject4());
 
 var Results = _hyperappStyledComponents.default.div(_templateObject5());
 
-var Column = _hyperappStyledComponents.default.div(_templateObject6());
+var Console = _hyperappStyledComponents.default.input(_templateObject6());
+
+var Column = _hyperappStyledComponents.default.div(_templateObject7());
 
 var Code = function Code() {
   return function (state, actions) {
@@ -15173,11 +15199,21 @@ var Code = function Code() {
       }
     }, "Hash"), (0, _hyperapp.h)("br", null), (0, _hyperapp.h)("br", null), (0, _hyperapp.h)("br", null), (0, _hyperapp.h)("h4", null, "Key Tools"), (0, _hyperapp.h)(Button, {
       onclick: actions.generateKey
-    }, "Generate Key"))), (0, _hyperapp.h)(Results, null, state.results.concat(state.errors).reverse().map(function (v, i) {
+    }, "Generate Key"))), (0, _hyperapp.h)(Results, {
+      id: "results"
+    }, state.results.concat(state.errors).map(function (v, i) {
       return (0, _hyperapp.h)("div", {
         style: "margin-top: 10px;"
-      }, state.results.concat(state.errors).length - i, ") ", v);
-    })));
+      }, i + 1, ") ", v);
+    })), (0, _hyperapp.h)(Console, {
+      placeholder: "",
+      onkeyup: function onkeyup(e) {
+        if (e.keyCode === 13) {
+          e.preventDefault();
+          actions.console(e.target.value);
+        }
+      }
+    }));
   };
 }; // routes for app
 
@@ -15222,7 +15258,7 @@ var parent = module.bundle.parent;
 if ((!parent || !parent.isParcelRequire) && typeof WebSocket !== 'undefined') {
   var hostname = "" || location.hostname;
   var protocol = location.protocol === 'https:' ? 'wss' : 'ws';
-  var ws = new WebSocket(protocol + '://' + hostname + ':' + "38827" + '/');
+  var ws = new WebSocket(protocol + '://' + hostname + ':' + "42531" + '/');
 
   ws.onmessage = function (event) {
     var data = JSON.parse(event.data);

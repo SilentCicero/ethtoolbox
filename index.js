@@ -28,7 +28,7 @@ const state = {
   error: null,
   results: [
     (<span>Welcome to EthToolBox brought to you by Ethers.js, the Eth Community and Nick Dodson <a href="https://twitter.com/iamnickdodson" target="_blank">@IAmNickDodson</a> ;)</span>),
-    'Tip: you can access Ethers directly using Eval e.g. ethers.utils.bigNumberify("12").toHexString()',
+    'Tip: you can access Ethers directly using the console e.g. ethers.utils.bigNumberify("12").toHexString()',
   ],
   abi: {},
   timestamp: Math.round(new Date().getTime()/1000),
@@ -70,6 +70,10 @@ const actions = {
   },
   result: val => (state, actions) => {
     actions.change({ results: state.results.concat([val]) });
+    const elm = document.getElementById('results');
+
+    // scroll to bottom
+    setTimeout(e => {(elm.scrollTop = elm.scrollHeight)}, 50);
   },
   onAbi: val => (state, actions) => {
     try {
@@ -156,6 +160,11 @@ const actions = {
   utf8: () => (state, actions) => {
     try {
       actions.result(`utf8("${state.inputA || ''}") => ${utils.toUtf8String(state.inputA || '')}`);
+    } catch (error) { actions.error(error); }
+  },
+  console: val => (state, actions) => {
+    try {
+      actions.result(`${eval(val)}`);
     } catch (error) { actions.error(error); }
   },
   time: val => (state, actions) => {
@@ -262,16 +271,42 @@ const Button = styled.button`
 `;
 
 const Results = styled.div`
-  margin-top: 30px;
   width: 40%;
   position: absolute;
   word-wrap: break-word;
   padding: 20px;
-  bottom: 0px;
+  bottom: 50px;
   top: 0px;
-  height: 100%;
   right: 0px;
   overflow: scroll;
+  overflow-x: hidden;
+`;
+
+const Console = styled.input`
+  position: absolute;
+  display: block;
+  line-height: 15px;
+  padding-top: 0px;
+  bottom: 0px;
+  height: 40px;
+  margin-bottom: 10px;
+  right: 35px;
+  padding-right: 20px;
+  padding-left: 23px;
+  border: 0px;
+  letter-spacing: .5px;
+  font-size: 15px;
+  width: 40%;
+  outline: none;
+  background: url(https://png.pngtree.com/svg/20160727/0bf24b248b.svg);
+  background-position: 0px 10px;
+  background-repeat: no-repeat;
+  background-size: 20px 20px;
+
+  &:focus {
+    color: none;
+    outline: none;
+  }
 `;
 
 const Column = styled.div`
@@ -373,8 +408,15 @@ const Code = () => (state, actions, v = console.log(state)) => (
       </Column>
     </Wrapper>
 
-    <Results>{state.results.concat(state.errors).reverse()
-      .map((v, i) => (<div style="margin-top: 10px;">{state.results.concat(state.errors).length - i}) {v}</div>))}</Results>
+    <Results id="results">{state.results.concat(state.errors)
+      .map((v, i) => (<div style="margin-top: 10px;">{i + 1}) {v}</div>))}</Results>
+
+    <Console placeholder="" onkeyup={e => {
+      if (e.keyCode === 13) {
+        e.preventDefault();
+        actions.console(e.target.value);
+      }
+    }}></Console>
   </div>
 );
 
