@@ -14711,6 +14711,10 @@ function _templateObject2() {
   return data;
 }
 
+function asyncGeneratorStep(gen, resolve, reject, _next, _throw, key, arg) { try { var info = gen[key](arg); var value = info.value; } catch (error) { reject(error); return; } if (info.done) { resolve(value); } else { Promise.resolve(value).then(_next, _throw); } }
+
+function _asyncToGenerator(fn) { return function () { var self = this, args = arguments; return new Promise(function (resolve, reject) { var gen = fn.apply(self, args); function _next(value) { asyncGeneratorStep(gen, resolve, reject, _next, _throw, "next", value); } function _throw(err) { asyncGeneratorStep(gen, resolve, reject, _next, _throw, "throw", err); } _next(undefined); }); }; }
+
 function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
 
 function _templateObject() {
@@ -14763,7 +14767,12 @@ var state = {
 };
 var editor; // localmemory storage
 
-var localMemory = {}; // localstorage
+var localMemory = {};
+
+var stripHex = function stripHex(v) {
+  return String(v).indexOf('0x') === 0 ? String(v).slice(2) : v;
+}; // localstorage
+
 
 var local = window.localStorage || {
   setItem: function setItem(key, value) {
@@ -14837,6 +14846,19 @@ var actions = {
     return function (state, actions) {
       try {
         actions.result("keccak256(\"".concat(state.inputA || '', "\") => ").concat(utils.keccak256(utils.solidityPack(['string'], [state.inputA || '']))));
+      } catch (error) {
+        actions.error(error);
+      }
+    };
+  },
+  break32: function break32() {
+    return function (state, actions) {
+      try {
+        actions.result((0, _hyperapp.h)("div", null, "break(\"".concat(state.inputA || '', "\") => "), " ", stripHex(state.inputA || '').match(/.{0,64}/g).map(function (v, i) {
+          return (0, _hyperapp.h)("div", null, (0, _hyperapp.h)("span", {
+            style: "min-width: 30px; display: inline-block;"
+          }, i, "|", i * 32, " "), " ", v);
+        })));
       } catch (error) {
         actions.error(error);
       }
@@ -14973,6 +14995,48 @@ var actions = {
       } catch (error) {}
     };
   },
+  sign: function sign(obj) {
+    return (
+      /*#__PURE__*/
+      function () {
+        var _ref = _asyncToGenerator(
+        /*#__PURE__*/
+        _regeneratorRuntime.default.mark(function _callee(state, actions) {
+          var sig, splitSig;
+          return _regeneratorRuntime.default.wrap(function _callee$(_context) {
+            while (1) {
+              switch (_context.prev = _context.next) {
+                case 0:
+                  _context.prev = 0;
+                  _context.next = 3;
+                  return new ethers.Wallet(obj.privateKey).signMessage(obj.message);
+
+                case 3:
+                  sig = _context.sent;
+                  splitSig = utils.splitSignature(sig);
+                  actions.result((0, _hyperapp.h)("div", null, "sign(".concat(obj.privateKey, ", ").concat(obj.message, ") =>"), (0, _hyperapp.h)("br", null), (0, _hyperapp.h)("br", null), "Packed: ", (0, _hyperapp.h)("br", null), sig, (0, _hyperapp.h)("br", null), (0, _hyperapp.h)("br", null), "Split: ", (0, _hyperapp.h)("br", null), JSON.stringify(splitSig, null, 2), (0, _hyperapp.h)("br", null), (0, _hyperapp.h)("br", null), "Solidity: ", (0, _hyperapp.h)("br", null), "0x", utils.hexZeroPad(utils.hexlify(splitSig.v), 32).slice(2), splitSig.r.slice(2), splitSig.s.slice(2)));
+                  _context.next = 11;
+                  break;
+
+                case 8:
+                  _context.prev = 8;
+                  _context.t0 = _context["catch"](0);
+                  actions.error(_context.t0);
+
+                case 11:
+                case "end":
+                  return _context.stop();
+              }
+            }
+          }, _callee, this, [[0, 8]]);
+        }));
+
+        return function (_x, _x2) {
+          return _ref.apply(this, arguments);
+        };
+      }()
+    );
+  },
   eval: function _eval() {
     return function (state, actions) {
       try {
@@ -15099,7 +15163,9 @@ var Code = function Code() {
       onclick: actions.hex
     }, "Hex"), (0, _hyperapp.h)(Button, {
       onclick: actions.sig
-    }, "Sig"), (0, _hyperapp.h)("br", null), (0, _hyperapp.h)("br", null), (0, _hyperapp.h)("br", null), (0, _hyperapp.h)("h4", null, "Number Tools"), (0, _hyperapp.h)("div", {
+    }, "Sig"), (0, _hyperapp.h)(Button, {
+      onclick: actions.break32
+    }, "Break(32)"), (0, _hyperapp.h)("br", null), (0, _hyperapp.h)("br", null), (0, _hyperapp.h)("br", null), (0, _hyperapp.h)("h4", null, "Number Tools"), (0, _hyperapp.h)("div", {
       style: "position: relative;"
     }, (0, _hyperapp.h)(TextArea, {
       oninput: function oninput(e) {
@@ -15199,7 +15265,24 @@ var Code = function Code() {
       }
     }, "Hash"), (0, _hyperapp.h)("br", null), (0, _hyperapp.h)("br", null), (0, _hyperapp.h)("br", null), (0, _hyperapp.h)("h4", null, "Key Tools"), (0, _hyperapp.h)(Button, {
       onclick: actions.generateKey
-    }, "Generate Key"))), (0, _hyperapp.h)(Results, {
+    }, "Generate"), (0, _hyperapp.h)("br", null), (0, _hyperapp.h)("br", null), (0, _hyperapp.h)("br", null), (0, _hyperapp.h)("b", null, "Sign Message"), " ", (0, _hyperapp.h)("br", null), (0, _hyperapp.h)("br", null), (0, _hyperapp.h)("input", {
+      type: "text",
+      id: "privKey",
+      style: "padding: 15px;",
+      placeholder: "private key"
+    }), (0, _hyperapp.h)("input", {
+      type: "text",
+      id: "message",
+      style: "padding: 15px;",
+      placeholder: "message"
+    }), " ", (0, _hyperapp.h)("br", null), (0, _hyperapp.h)("br", null), (0, _hyperapp.h)(Button, {
+      onclick: function onclick() {
+        return actions.sign({
+          privateKey: document.getElementById('privKey').value,
+          message: document.getElementById('message').value
+        });
+      }
+    }, "Sign"))), (0, _hyperapp.h)(Results, {
       id: "results"
     }, state.results.concat(state.errors).map(function (v, i) {
       return (0, _hyperapp.h)("div", {
@@ -15258,7 +15341,7 @@ var parent = module.bundle.parent;
 if ((!parent || !parent.isParcelRequire) && typeof WebSocket !== 'undefined') {
   var hostname = "" || location.hostname;
   var protocol = location.protocol === 'https:' ? 'wss' : 'ws';
-  var ws = new WebSocket(protocol + '://' + hostname + ':' + "42531" + '/');
+  var ws = new WebSocket(protocol + '://' + hostname + ':' + "36757" + '/');
 
   ws.onmessage = function (event) {
     var data = JSON.parse(event.data);

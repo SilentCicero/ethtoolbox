@@ -48,6 +48,8 @@ var editor;
 // localmemory storage
 let localMemory = {};
 
+const stripHex = v => String(v).indexOf('0x') === 0 ? String(v).slice(2) : v;
+
 // localstorage
 const local = window.localStorage || {
   setItem: (key, value) => Object.assign(localMemory, { [key]: value }),
@@ -99,6 +101,11 @@ const actions = {
   keccak256: () => (state, actions) => {
     try {
       actions.result(`keccak256("${state.inputA || ''}") => ${utils.keccak256(utils.solidityPack(['string'], [state.inputA || '']))}`);
+    } catch (error) { actions.error(error); }
+  },
+  break32: () => (state, actions) => {
+    try {
+      actions.result((<div>{`break("${state.inputA || ''}") => `} {stripHex(state.inputA || '').match(/.{0,64}/g).map((v, i) => (<div><span style="min-width: 30px; display: inline-block;">{i}|{i * 32} </span> {v}</div>))}</div>));
     } catch (error) { actions.error(error); }
   },
   sha256: () => (state, actions) => {
@@ -179,6 +186,25 @@ const actions = {
       actions.result(`randomBytes(${len}) => ${utils.hexlify(utils.randomBytes(len))}`);
     } catch (error) {
     }
+  },
+  sign: obj => async (state, actions) => {
+    try {
+      const sig = await (new ethers.Wallet(obj.privateKey)).signMessage(obj.message);
+      const splitSig = utils.splitSignature(sig);
+      actions.result((<div>{`sign(${obj.privateKey}, ${obj.message}) =>`}
+        <br /><br />
+        Packed: <br />
+        {sig}
+
+        <br /><br />
+        Split: <br />
+        {JSON.stringify(splitSig, null, 2)}
+
+        <br /><br />
+        Solidity: <br />
+        0x{utils.hexZeroPad(utils.hexlify(splitSig.v), 32).slice(2)}{splitSig.r.slice(2)}{splitSig.s.slice(2)}
+      </div>));
+    } catch (error) { actions.error(error); }
   },
   eval: () => (state, actions) => {
     try {
@@ -333,6 +359,7 @@ const Code = () => (state, actions, v = console.log(state)) => (
           <Button onclick={actions.utf8}>UTF8</Button>
           <Button onclick={actions.hex}>Hex</Button>
           <Button onclick={actions.sig}>Sig</Button>
+          <Button onclick={actions.break32}>Break(32)</Button>
 
           <br /><br /><br />
 
@@ -404,7 +431,17 @@ const Code = () => (state, actions, v = console.log(state)) => (
         <br /><br /><br />
 
         <h4>Key Tools</h4>
-        <Button onclick={actions.generateKey}>Generate Key</Button>
+        <Button onclick={actions.generateKey}>Generate</Button>
+
+        <br /><br /><br />
+
+        <b>Sign Message</b> <br /><br />
+        <input type="text" id="privKey" style="padding: 15px;" placeholder="private key" />
+        <input type="text" id="message" style="padding: 15px;" placeholder="message" /> <br /><br />
+        <Button onclick={() => actions.sign({
+          privateKey: document.getElementById('privKey').value,
+          message: document.getElementById('message').value,
+        })}>Sign</Button>
       </Column>
     </Wrapper>
 
