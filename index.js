@@ -30,6 +30,7 @@ const state = {
     (<span>Welcome to EthToolBox brought to you by Ethers.js, the Eth Community and Nick Dodson <a href="https://twitter.com/iamnickdodson" target="_blank">@IAmNickDodson</a> ;)</span>),
     'Tip: you can access Ethers directly using Eval e.g. ethers.utils.bigNumberify("12").toHexString()',
   ],
+  abi: {},
   timestamp: Math.round(new Date().getTime()/1000),
   timestring: (new Date()).toLocaleString(undefined, {
     day: 'numeric',
@@ -69,6 +70,27 @@ const actions = {
   },
   result: val => (state, actions) => {
     actions.change({ results: state.results.concat([val]) });
+  },
+  onAbi: val => (state, actions) => {
+    try {
+      actions.change({
+        methodString: val,
+        abi: new ethers.utils.Interface([val]).abi,
+      });
+    } catch (error) {
+      actions.change({ abiError: error.message });
+    }
+  },
+  encode: () => (state, actions) => {
+    try {
+      const args = state.abi[0].inputs.map(
+        (v, i) => (v.type.indexOf('[') !== -1 ? JSON.parse : noop1)(document.getElementById(`arg${i}`).value));
+      const method = (new ethers.utils.Interface([state.abi[0]])).functions[state.abi[0].name];
+      const encoded = method.encode(args);
+
+      actions.result((<div>{`
+        ${state.methodString}`}<br />{`${state.abi[0].name}(${args.join(', ')}) => `} <br /><br /><b>{encoded}</b></div>));
+    } catch (error) { actions.error(error); }
   },
   keccak256: () => (state, actions) => {
     try {
@@ -121,8 +143,8 @@ const actions = {
       let wallet = new ethers.Wallet(privateKey);
 
       actions.result((<div>new Wallet() => [ <br />
-        Private Key: <br /> {wallet.privateKey} <br /> <br />
-        Address: <br /> {wallet.address} <br />
+        Private Key: <br /> <b>{wallet.privateKey}</b> <br /> <br />
+        Address: <br /> <b>{wallet.address}</b> <br />
       ]</div>));
     } catch (error) { actions.error(error); }
   },
@@ -170,6 +192,7 @@ const trimHexPrefix = val => String(val).indexOf('0x') === 0 ? String(val).slice
 
 // no operation
 const noop = () => {};
+const noop1 = v => v;
 
 // provider
 let provider = window.ethereum || (window.web3 || {}).currentProvider;
@@ -215,8 +238,9 @@ const Wrapper = styled.div`
   display: flex;
   flex-direction: row;
   height: 100%;
-  width: 60%;
+  width: 53%;
   position: absolute;
+  overflow: scroll;
   left: 0px;
   top: 0px;
   bottom: 0px;
@@ -252,10 +276,11 @@ const Results = styled.div`
 
 const Column = styled.div`
   margin-left: 20px;
+  padding-bottom: 100px;
 `;
 
-const Code = () => (state, actions) => (
-  <div>
+const Code = () => (state, actions, v = console.log(state)) => (
+  <div style="width: 100%;">
     <Wrapper>
       <Column style="display: flex; flex-direction: column; width: 500px;">
         <h1>EthToolBox</h1>
@@ -290,6 +315,29 @@ const Code = () => (state, actions) => (
           <Button onclick={actions.toEther}>Wei</Button>
           <Button onclick={actions.pad32Left}>Pad32(Left)</Button>
         </div>
+
+        <br /><br /><br />
+
+        <h4>ABI Tools</h4>
+        <div style="position: relative;">
+          <input type="text" id="abi" style="padding: 15px;" oninput={e => actions.onAbi(e.target.value.trim().replace(/memory|calldata/g, '').replace(/;/g, ""))} placeholder="transfer(address to, uint tokens)" />
+
+          {Object.keys(state.abi).length ? (<div>  <br />
+            <h3>{state.abi[0].name}</h3> <br />
+            {state.abi[0].inputs.map((arg, index) => (<div>
+              <b>{arg.name || `Argument ${index}`}</b><br />
+              <input type="text" id={`arg${index}`} style="padding: 15px;" placeholder={arg.type} /> <br /> <br />
+            </div>))}
+
+            <Button onclick={actions.encode}>Encode</Button>
+            <Button onclick={e => {
+              (document.getElementById('abi').value = '');
+              actions.change({ abi: {}, methodString: '', abiError: null })
+            }}>Clear</Button>
+          </div>) : (<div><br />{state.abiError}</div>)}
+
+          <br /><br />
+        </div>
       </Column>
 
       <Column>
@@ -309,8 +357,7 @@ const Code = () => (state, actions) => (
 
         <h3>Entropy Tools</h3>
         <Button onclick={e => actions.entropy(20)}>20 Bytes</Button>
-        <Button onclick={e => actions.entropy(64)}>64 Bytes</Button>
-        <Button onclick={e => actions.entropy(96)}>96 Bytes</Button>
+        <Button onclick={e => actions.entropy(32)}>32 Bytes</Button>
         <Button onclick={e => actions.entropy(128)}>128 Bytes</Button>
 
         <br /><br /><br />
@@ -318,7 +365,7 @@ const Code = () => (state, actions) => (
         <h3>ENS Tools</h3>
         <input type="text" style="padding: 15px; margin-right: 10px;" state={state.ensName || ''} oninput={e => actions.change({ ensName: e.target.value || '' })} placeholder="ricmoo.firefly.eth" />
         <Button onclick={e => actions.ensHash(state.ensName)}>Hash</Button>
-        
+
         <br /><br /><br />
 
         <h4>Key Tools</h4>

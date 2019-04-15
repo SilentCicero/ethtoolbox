@@ -14652,7 +14652,7 @@ var _moment = _interopRequireDefault(require("moment"));
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 function _templateObject6() {
-  var data = _taggedTemplateLiteral(["\n  margin-left: 20px;\n"]);
+  var data = _taggedTemplateLiteral(["\n  margin-left: 20px;\n  padding-bottom: 100px;\n"]);
 
   _templateObject6 = function _templateObject6() {
     return data;
@@ -14692,7 +14692,7 @@ function _templateObject3() {
 }
 
 function _templateObject2() {
-  var data = _taggedTemplateLiteral(["\n  padding: 20px;\n  display: flex;\n  flex-direction: row;\n  height: 100%;\n  width: 60%;\n  position: absolute;\n  left: 0px;\n  top: 0px;\n  bottom: 0px;\n  flex-wrap: wrap;\n"]);
+  var data = _taggedTemplateLiteral(["\n  padding: 20px;\n  display: flex;\n  flex-direction: row;\n  height: 100%;\n  width: 53%;\n  position: absolute;\n  overflow: scroll;\n  left: 0px;\n  top: 0px;\n  bottom: 0px;\n  flex-wrap: wrap;\n"]);
 
   _templateObject2 = function _templateObject2() {
     return data;
@@ -14739,6 +14739,7 @@ var state = {
     href: "https://twitter.com/iamnickdodson",
     target: "_blank"
   }, "@IAmNickDodson"), " ;)"), 'Tip: you can access Ethers directly using Eval e.g. ethers.utils.bigNumberify("12").toHexString()'],
+  abi: {},
   timestamp: Math.round(new Date().getTime() / 1000),
   timestring: new Date().toLocaleString(undefined, {
     day: 'numeric',
@@ -14787,6 +14788,34 @@ var actions = {
       actions.change({
         results: state.results.concat([val])
       });
+    };
+  },
+  onAbi: function onAbi(val) {
+    return function (state, actions) {
+      try {
+        actions.change({
+          methodString: val,
+          abi: new ethers.utils.Interface([val]).abi
+        });
+      } catch (error) {
+        actions.change({
+          abiError: error.message
+        });
+      }
+    };
+  },
+  encode: function encode() {
+    return function (state, actions) {
+      try {
+        var args = state.abi[0].inputs.map(function (v, i) {
+          return (v.type.indexOf('[') !== -1 ? JSON.parse : noop1)(document.getElementById("arg".concat(i)).value);
+        });
+        var method = new ethers.utils.Interface([state.abi[0]]).functions[state.abi[0].name];
+        var encoded = method.encode(args);
+        actions.result((0, _hyperapp.h)("div", null, "\n        ".concat(state.methodString), (0, _hyperapp.h)("br", null), "".concat(state.abi[0].name, "(").concat(args.join(', '), ") => "), " ", (0, _hyperapp.h)("br", null), (0, _hyperapp.h)("br", null), (0, _hyperapp.h)("b", null, encoded)));
+      } catch (error) {
+        actions.error(error);
+      }
     };
   },
   keccak256: function keccak256() {
@@ -14875,7 +14904,7 @@ var actions = {
       try {
         var privateKey = utils.randomBytes(32);
         var wallet = new ethers.Wallet(privateKey);
-        actions.result((0, _hyperapp.h)("div", null, "new Wallet() => [ ", (0, _hyperapp.h)("br", null), "Private Key: ", (0, _hyperapp.h)("br", null), " ", wallet.privateKey, " ", (0, _hyperapp.h)("br", null), " ", (0, _hyperapp.h)("br", null), "Address: ", (0, _hyperapp.h)("br", null), " ", wallet.address, " ", (0, _hyperapp.h)("br", null), "]"));
+        actions.result((0, _hyperapp.h)("div", null, "new Wallet() => [ ", (0, _hyperapp.h)("br", null), "Private Key: ", (0, _hyperapp.h)("br", null), " ", (0, _hyperapp.h)("b", null, wallet.privateKey), " ", (0, _hyperapp.h)("br", null), " ", (0, _hyperapp.h)("br", null), "Address: ", (0, _hyperapp.h)("br", null), " ", (0, _hyperapp.h)("b", null, wallet.address), " ", (0, _hyperapp.h)("br", null), "]"));
       } catch (error) {
         actions.error(error);
       }
@@ -14951,7 +14980,11 @@ var trimHexPrefix = function trimHexPrefix(val) {
 }; // no operation
 
 
-var noop = function noop() {}; // provider
+var noop = function noop() {};
+
+var noop1 = function noop1(v) {
+  return v;
+}; // provider
 
 
 var provider = window.ethereum || (window.web3 || {}).currentProvider; // provider..
@@ -15006,7 +15039,10 @@ var Column = _hyperappStyledComponents.default.div(_templateObject6());
 
 var Code = function Code() {
   return function (state, actions) {
-    return (0, _hyperapp.h)("div", null, (0, _hyperapp.h)(Wrapper, null, (0, _hyperapp.h)(Column, {
+    var v = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : console.log(state);
+    return (0, _hyperapp.h)("div", {
+      style: "width: 100%;"
+    }, (0, _hyperapp.h)(Wrapper, null, (0, _hyperapp.h)(Column, {
       style: "display: flex; flex-direction: column; width: 500px;"
     }, (0, _hyperapp.h)("h1", null, "EthToolBox"), (0, _hyperapp.h)("small", {
       style: "margin-top: -15px"
@@ -15062,7 +15098,35 @@ var Code = function Code() {
       onclick: actions.toEther
     }, "Wei"), (0, _hyperapp.h)(Button, {
       onclick: actions.pad32Left
-    }, "Pad32(Left)"))), (0, _hyperapp.h)(Column, null, (0, _hyperapp.h)("h3", null, "Date Tools (UTC)"), (0, _hyperapp.h)("div", null, (0, _hyperapp.h)("input", {
+    }, "Pad32(Left)")), (0, _hyperapp.h)("br", null), (0, _hyperapp.h)("br", null), (0, _hyperapp.h)("br", null), (0, _hyperapp.h)("h4", null, "ABI Tools"), (0, _hyperapp.h)("div", {
+      style: "position: relative;"
+    }, (0, _hyperapp.h)("input", {
+      type: "text",
+      id: "abi",
+      style: "padding: 15px;",
+      oninput: function oninput(e) {
+        return actions.onAbi(e.target.value.trim().replace(/memory|calldata/g, '').replace(/;/g, ""));
+      },
+      placeholder: "transfer(address to, uint tokens)"
+    }), Object.keys(state.abi).length ? (0, _hyperapp.h)("div", null, "  ", (0, _hyperapp.h)("br", null), (0, _hyperapp.h)("h3", null, state.abi[0].name), " ", (0, _hyperapp.h)("br", null), state.abi[0].inputs.map(function (arg, index) {
+      return (0, _hyperapp.h)("div", null, (0, _hyperapp.h)("b", null, arg.name || "Argument ".concat(index)), (0, _hyperapp.h)("br", null), (0, _hyperapp.h)("input", {
+        type: "text",
+        id: "arg".concat(index),
+        style: "padding: 15px;",
+        placeholder: arg.type
+      }), " ", (0, _hyperapp.h)("br", null), " ", (0, _hyperapp.h)("br", null));
+    }), (0, _hyperapp.h)(Button, {
+      onclick: actions.encode
+    }, "Encode"), (0, _hyperapp.h)(Button, {
+      onclick: function onclick(e) {
+        document.getElementById('abi').value = '';
+        actions.change({
+          abi: {},
+          methodString: '',
+          abiError: null
+        });
+      }
+    }, "Clear")) : (0, _hyperapp.h)("div", null, (0, _hyperapp.h)("br", null), state.abiError), (0, _hyperapp.h)("br", null), (0, _hyperapp.h)("br", null))), (0, _hyperapp.h)(Column, null, (0, _hyperapp.h)("h3", null, "Date Tools (UTC)"), (0, _hyperapp.h)("div", null, (0, _hyperapp.h)("input", {
       type: "text",
       style: "padding: 20px;",
       value: state.timestring,
@@ -15087,13 +15151,9 @@ var Code = function Code() {
       }
     }, "20 Bytes"), (0, _hyperapp.h)(Button, {
       onclick: function onclick(e) {
-        return actions.entropy(64);
+        return actions.entropy(32);
       }
-    }, "64 Bytes"), (0, _hyperapp.h)(Button, {
-      onclick: function onclick(e) {
-        return actions.entropy(96);
-      }
-    }, "96 Bytes"), (0, _hyperapp.h)(Button, {
+    }, "32 Bytes"), (0, _hyperapp.h)(Button, {
       onclick: function onclick(e) {
         return actions.entropy(128);
       }
@@ -15162,7 +15222,7 @@ var parent = module.bundle.parent;
 if ((!parent || !parent.isParcelRequire) && typeof WebSocket !== 'undefined') {
   var hostname = "" || location.hostname;
   var protocol = location.protocol === 'https:' ? 'wss' : 'ws';
-  var ws = new WebSocket(protocol + '://' + hostname + ':' + "37815" + '/');
+  var ws = new WebSocket(protocol + '://' + hostname + ':' + "38827" + '/');
 
   ws.onmessage = function (event) {
     var data = JSON.parse(event.data);
