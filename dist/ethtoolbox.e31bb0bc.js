@@ -14857,7 +14857,7 @@ var actions = {
         actions.result((0, _hyperapp.h)("div", null, "break(\"".concat(state.inputA || '', "\") => "), " ", stripHex(state.inputA || '').match(/.{0,64}/g).map(function (v, i) {
           return (0, _hyperapp.h)("div", null, (0, _hyperapp.h)("span", {
             style: "min-width: 30px; display: inline-block;"
-          }, i, "|", i * 32, " "), " ", v);
+          }, i, "|", i * 32), " ", v);
         })));
       } catch (error) {
         actions.error(error);
@@ -15002,33 +15002,24 @@ var actions = {
         var _ref = _asyncToGenerator(
         /*#__PURE__*/
         _regeneratorRuntime.default.mark(function _callee(state, actions) {
-          var sig, splitSig;
+          var splitSig;
           return _regeneratorRuntime.default.wrap(function _callee$(_context) {
             while (1) {
               switch (_context.prev = _context.next) {
                 case 0:
-                  _context.prev = 0;
-                  _context.next = 3;
-                  return new ethers.Wallet(obj.privateKey).signMessage(obj.message);
+                  try {
+                    splitSig = new ethers.utils.SigningKey(obj.privateKey).signDigest(obj.message);
+                    actions.result((0, _hyperapp.h)("div", null, "sign(".concat(obj.privateKey, ", ").concat(obj.message, ") =>"), (0, _hyperapp.h)("br", null), (0, _hyperapp.h)("br", null), "Packed: ", (0, _hyperapp.h)("br", null), utils.joinSignature(splitSig), (0, _hyperapp.h)("br", null), (0, _hyperapp.h)("br", null), "Split: ", (0, _hyperapp.h)("br", null), JSON.stringify(splitSig, null, 2), (0, _hyperapp.h)("br", null), (0, _hyperapp.h)("br", null), "Solidity: ", (0, _hyperapp.h)("br", null), "0x", utils.hexZeroPad(utils.hexlify(splitSig.v), 32).slice(2), splitSig.r.slice(2), splitSig.s.slice(2)));
+                  } catch (error) {
+                    actions.error(error);
+                  }
 
-                case 3:
-                  sig = _context.sent;
-                  splitSig = utils.splitSignature(sig);
-                  actions.result((0, _hyperapp.h)("div", null, "sign(".concat(obj.privateKey, ", ").concat(obj.message, ") =>"), (0, _hyperapp.h)("br", null), (0, _hyperapp.h)("br", null), "Packed: ", (0, _hyperapp.h)("br", null), sig, (0, _hyperapp.h)("br", null), (0, _hyperapp.h)("br", null), "Split: ", (0, _hyperapp.h)("br", null), JSON.stringify(splitSig, null, 2), (0, _hyperapp.h)("br", null), (0, _hyperapp.h)("br", null), "Solidity: ", (0, _hyperapp.h)("br", null), "0x", utils.hexZeroPad(utils.hexlify(splitSig.v), 32).slice(2), splitSig.r.slice(2), splitSig.s.slice(2)));
-                  _context.next = 11;
-                  break;
-
-                case 8:
-                  _context.prev = 8;
-                  _context.t0 = _context["catch"](0);
-                  actions.error(_context.t0);
-
-                case 11:
+                case 1:
                 case "end":
                   return _context.stop();
               }
             }
-          }, _callee, this, [[0, 8]]);
+          }, _callee, this);
         }));
 
         return function (_x, _x2) {
@@ -15341,7 +15332,7 @@ var parent = module.bundle.parent;
 if ((!parent || !parent.isParcelRequire) && typeof WebSocket !== 'undefined') {
   var hostname = "" || location.hostname;
   var protocol = location.protocol === 'https:' ? 'wss' : 'ws';
-  var ws = new WebSocket(protocol + '://' + hostname + ':' + "36757" + '/');
+  var ws = new WebSocket(protocol + '://' + hostname + ':' + "38009" + '/');
 
   ws.onmessage = function (event) {
     var data = JSON.parse(event.data);

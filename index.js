@@ -105,7 +105,7 @@ const actions = {
   },
   break32: () => (state, actions) => {
     try {
-      actions.result((<div>{`break("${state.inputA || ''}") => `} {stripHex(state.inputA || '').match(/.{0,64}/g).map((v, i) => (<div><span style="min-width: 30px; display: inline-block;">{i}|{i * 32} </span> {v}</div>))}</div>));
+      actions.result((<div>{`break("${state.inputA || ''}") => `} {stripHex(state.inputA || '').match(/.{0,64}/g).map((v, i) => (<div><span style="min-width: 30px; display: inline-block;">{i}|{i * 32}</span> {v}</div>))}</div>));
     } catch (error) { actions.error(error); }
   },
   sha256: () => (state, actions) => {
@@ -189,12 +189,11 @@ const actions = {
   },
   sign: obj => async (state, actions) => {
     try {
-      const sig = await (new ethers.Wallet(obj.privateKey)).signMessage(obj.message);
-      const splitSig = utils.splitSignature(sig);
+      const splitSig = (new ethers.utils.SigningKey(obj.privateKey)).signDigest(obj.message);
       actions.result((<div>{`sign(${obj.privateKey}, ${obj.message}) =>`}
         <br /><br />
         Packed: <br />
-        {sig}
+        {utils.joinSignature(splitSig)}
 
         <br /><br />
         Split: <br />
