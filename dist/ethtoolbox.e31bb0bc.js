@@ -14651,6 +14651,26 @@ var _moment = _interopRequireDefault(require("moment"));
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
+function _templateObject9() {
+  var data = _taggedTemplateLiteral(["\n  margin-right: 20px;\n  margin-bottom: 40px;\n  border-right: 1px solid #333;\n  cursor: pointer;\n  padding-right: 20px;\n  text-decoration: none;\n  margin-bottom: 20px;\n\n  &:hover {\n    color: blue;\n  }\n"]);
+
+  _templateObject9 = function _templateObject9() {
+    return data;
+  };
+
+  return data;
+}
+
+function _templateObject8() {
+  var data = _taggedTemplateLiteral(["\n  margin-top: 40px;\n  margin-bottom: 80px;\n"]);
+
+  _templateObject8 = function _templateObject8() {
+    return data;
+  };
+
+  return data;
+}
+
 function _templateObject7() {
   var data = _taggedTemplateLiteral(["\n  margin-left: 20px;\n  padding-bottom: 100px;\n"]);
 
@@ -14743,7 +14763,13 @@ var _require2 = require('ethjs-extras'),
     onReceipt = _require2.onReceipt;
 
 // change global style..
-_hyperappStyledComponents.default.injectGlobal(_templateObject()); // define initial app state
+_hyperappStyledComponents.default.injectGlobal(_templateObject()); // standard route method
+
+
+var route = function route(pathname) {
+  window.scrollTo(0, 0);
+  history.pushState(null, "", pathname);
+}; // define initial app state
 
 
 var state = {
@@ -14817,9 +14843,11 @@ var actions = {
   onAbi: function onAbi(val) {
     return function (state, actions) {
       try {
+        var inter = new ethers.utils.Interface([val]);
         actions.change({
           methodString: val,
-          abi: new ethers.utils.Interface([val]).abi
+          methodHash: inter.functions[inter.abi[0].name].sighash,
+          abi: inter.abi
         });
       } catch (error) {
         actions.change({
@@ -14845,7 +14873,11 @@ var actions = {
   keccak256: function keccak256() {
     return function (state, actions) {
       try {
-        actions.result("keccak256(\"".concat(state.inputA || '', "\") => ").concat(utils.keccak256(utils.solidityPack(['string'], [state.inputA || '']))));
+        if (String(state.inputA).indexOf('0x') === 0) {
+          actions.result("keccak256(\"".concat(state.inputA || '', "\") => ").concat(utils.keccak256(state.inputA || '')));
+        } else {
+          actions.result("keccak256(solidityPack(\"".concat(state.inputA || '', "\")) => ").concat(utils.keccak256(utils.solidityPack(['string'], [state.inputA || '']))));
+        }
       } catch (error) {
         actions.error(error);
       }
@@ -15089,11 +15121,6 @@ var abiEncode = encodePacked; // lower case it
 
 var lower = function lower(v) {
   return String(v).toLowerCase();
-}; // are you sure message for unload.
-
-
-window.onbeforeunload = function (e) {
-  return 'Are you sure you want to close this tab. Data could be lost!';
 }; // Not found page
 
 
@@ -15118,6 +15145,10 @@ var Console = _hyperappStyledComponents.default.input(_templateObject6());
 
 var Column = _hyperappStyledComponents.default.div(_templateObject7());
 
+var Buttons = _hyperappStyledComponents.default.div(_templateObject8());
+
+var PageButton = _hyperappStyledComponents.default.span(_templateObject9());
+
 var Code = function Code() {
   return function (state, actions) {
     var v = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : console.log(state);
@@ -15133,147 +15164,254 @@ var Code = function Code() {
     }, "ethers.js"), " and ", (0, _hyperapp.h)("a", {
       href: "https://github.com/ethjs",
       target: "_blank"
-    }, "ethjs"))), (0, _hyperapp.h)("div", null, (0, _hyperapp.h)("br", null), (0, _hyperapp.h)("h4", null, "String & Hex Tools"), (0, _hyperapp.h)("div", {
-      style: "position: relative;"
-    }, (0, _hyperapp.h)(TextArea, {
-      oninput: function oninput(e) {
-        return actions.change({
-          inputA: String(e.target.value || '').trim()
-        });
-      },
-      placeholder: "input string or hex data"
-    }), (0, _hyperapp.h)("div", {
-      style: "position: absolute; bottom: 10px; right: 10px;"
-    }, trimHexPrefix(state.inputA || '').length / 2, " bytes")), (0, _hyperapp.h)("br", null), (0, _hyperapp.h)(Button, {
-      onclick: actions.sha256
-    }, "Sha256"), (0, _hyperapp.h)(Button, {
-      onclick: actions.keccak256
-    }, "Keccak256"), (0, _hyperapp.h)(Button, {
-      onclick: actions.utf8
-    }, "UTF8"), (0, _hyperapp.h)(Button, {
-      onclick: actions.hex
-    }, "Hex"), (0, _hyperapp.h)(Button, {
-      onclick: actions.sig
-    }, "Sig"), (0, _hyperapp.h)(Button, {
-      onclick: actions.break32
-    }, "Break(32)"), (0, _hyperapp.h)("br", null), (0, _hyperapp.h)("br", null), (0, _hyperapp.h)("br", null), (0, _hyperapp.h)("h4", null, "Number Tools"), (0, _hyperapp.h)("div", {
-      style: "position: relative;"
-    }, (0, _hyperapp.h)(TextArea, {
-      oninput: function oninput(e) {
-        return actions.change({
-          inputB: String(e.target.value || '').trim()
-        });
-      },
-      placeholder: "number data"
-    }), (0, _hyperapp.h)("div", {
-      style: "position: absolute; bottom: 10px; right: 10px;"
-    }, trimHexPrefix(state.inputB || '').length / 2, " bytes")), (0, _hyperapp.h)(Button, {
-      onclick: actions.eval
-    }, "Eval"), (0, _hyperapp.h)(Button, {
-      onclick: actions.toInt
-    }, ".toString(10)"), (0, _hyperapp.h)(Button, {
-      onclick: actions.bignumber
-    }, ".toString(16)"), (0, _hyperapp.h)(Button, {
-      onclick: actions.toWei
-    }, "Ether"), (0, _hyperapp.h)(Button, {
-      onclick: actions.toGWei
-    }, "Gwei"), (0, _hyperapp.h)(Button, {
-      onclick: actions.toEther
-    }, "Wei"), (0, _hyperapp.h)(Button, {
-      onclick: actions.pad32Left
-    }, "Pad32(Left)")), (0, _hyperapp.h)("br", null), (0, _hyperapp.h)("br", null), (0, _hyperapp.h)("br", null), (0, _hyperapp.h)("h4", null, "ABI Tools"), (0, _hyperapp.h)("div", {
-      style: "position: relative;"
-    }, (0, _hyperapp.h)("input", {
-      type: "text",
-      id: "abi",
-      style: "padding: 15px;",
-      oninput: function oninput(e) {
-        return actions.onAbi(e.target.value.trim().replace(/memory|calldata/g, '').replace(/;/g, ""));
-      },
-      placeholder: "transfer(address to, uint tokens)"
-    }), Object.keys(state.abi).length ? (0, _hyperapp.h)("div", null, "  ", (0, _hyperapp.h)("br", null), (0, _hyperapp.h)("h3", null, state.abi[0].name), " ", (0, _hyperapp.h)("br", null), state.abi[0].inputs.map(function (arg, index) {
-      return (0, _hyperapp.h)("div", null, (0, _hyperapp.h)("b", null, arg.name || "Argument ".concat(index)), (0, _hyperapp.h)("br", null), (0, _hyperapp.h)("input", {
-        type: "text",
-        id: "arg".concat(index),
-        style: "padding: 15px;",
-        placeholder: arg.type
-      }), " ", (0, _hyperapp.h)("br", null), " ", (0, _hyperapp.h)("br", null));
-    }), (0, _hyperapp.h)(Button, {
-      onclick: actions.encode
-    }, "Encode"), (0, _hyperapp.h)(Button, {
+    }, "ethjs"))), (0, _hyperapp.h)("div", null, (0, _hyperapp.h)(Buttons, null, (0, _hyperapp.h)(PageButton, {
       onclick: function onclick(e) {
-        document.getElementById('abi').value = '';
-        actions.change({
-          abi: {},
-          methodString: '',
-          abiError: null
-        });
+        return route('/hex');
       }
-    }, "Clear")) : (0, _hyperapp.h)("div", null, (0, _hyperapp.h)("br", null), state.abiError), (0, _hyperapp.h)("br", null), (0, _hyperapp.h)("br", null))), (0, _hyperapp.h)(Column, null, (0, _hyperapp.h)("h3", null, "Date Tools (UTC)"), (0, _hyperapp.h)("div", null, (0, _hyperapp.h)("input", {
-      type: "text",
-      style: "padding: 20px;",
-      value: state.timestring,
-      oninput: function oninput(e) {
-        return actions.time(e.target.value);
-      }
-    })), (0, _hyperapp.h)("br", null), (0, _hyperapp.h)("div", null, state.timestamp, " ", (0, _hyperapp.h)("small", {
-      style: "cursor: pointer; user-select: none;",
+    }, "Hex"), (0, _hyperapp.h)(PageButton, {
       onclick: function onclick(e) {
-        return actions.time(new Date().toLocaleString(undefined, {
-          day: 'numeric',
-          month: 'numeric',
-          year: 'numeric',
-          hour: '2-digit',
-          minute: '2-digit',
-          timeZone: 'UTC'
-        }));
+        return route('/number');
       }
-    }, "refresh")), (0, _hyperapp.h)("br", null), (0, _hyperapp.h)("br", null), (0, _hyperapp.h)("br", null), (0, _hyperapp.h)("h3", null, "Entropy Tools"), (0, _hyperapp.h)(Button, {
+    }, "Number"), (0, _hyperapp.h)(PageButton, {
       onclick: function onclick(e) {
-        return actions.entropy(20);
+        return route('/abi');
       }
-    }, "20 Bytes"), (0, _hyperapp.h)(Button, {
+    }, "ABI"), (0, _hyperapp.h)(PageButton, {
       onclick: function onclick(e) {
-        return actions.entropy(32);
+        return route('/date');
       }
-    }, "32 Bytes"), (0, _hyperapp.h)(Button, {
+    }, "Date/Time"), (0, _hyperapp.h)(PageButton, {
       onclick: function onclick(e) {
-        return actions.entropy(128);
+        return route('/entropy');
       }
-    }, "128 Bytes"), (0, _hyperapp.h)("br", null), (0, _hyperapp.h)("br", null), (0, _hyperapp.h)("br", null), (0, _hyperapp.h)("h3", null, "ENS Tools"), (0, _hyperapp.h)("input", {
-      type: "text",
-      style: "padding: 15px; margin-right: 10px;",
-      state: state.ensName || '',
-      oninput: function oninput(e) {
-        return actions.change({
-          ensName: e.target.value || ''
-        });
-      },
-      placeholder: "ricmoo.firefly.eth"
-    }), (0, _hyperapp.h)(Button, {
+    }, "Entropy"), (0, _hyperapp.h)(PageButton, {
       onclick: function onclick(e) {
-        return actions.ensHash(state.ensName);
+        return route('/ens');
       }
-    }, "Hash"), (0, _hyperapp.h)("br", null), (0, _hyperapp.h)("br", null), (0, _hyperapp.h)("br", null), (0, _hyperapp.h)("h4", null, "Key Tools"), (0, _hyperapp.h)(Button, {
-      onclick: actions.generateKey
-    }, "Generate"), (0, _hyperapp.h)("br", null), (0, _hyperapp.h)("br", null), (0, _hyperapp.h)("br", null), (0, _hyperapp.h)("b", null, "Sign Message"), " ", (0, _hyperapp.h)("br", null), (0, _hyperapp.h)("br", null), (0, _hyperapp.h)("input", {
-      type: "text",
-      id: "privKey",
-      style: "padding: 15px;",
-      placeholder: "private key"
-    }), (0, _hyperapp.h)("input", {
-      type: "text",
-      id: "message",
-      style: "padding: 15px;",
-      placeholder: "message"
-    }), " ", (0, _hyperapp.h)("br", null), (0, _hyperapp.h)("br", null), (0, _hyperapp.h)(Button, {
-      onclick: function onclick() {
-        return actions.sign({
-          privateKey: document.getElementById('privKey').value,
-          message: document.getElementById('message').value
-        });
+    }, "ENS"), (0, _hyperapp.h)(PageButton, {
+      onclick: function onclick(e) {
+        return route('/keys');
       }
-    }, "Sign"))), (0, _hyperapp.h)(Results, {
+    }, "Signatures")), (0, _hyperapp.h)(_router.Route, {
+      path: "/",
+      render: function render() {
+        return function () {
+          return (0, _hyperapp.h)("div", null, (0, _hyperapp.h)("h4", null, "String & Hex Tools"), (0, _hyperapp.h)("div", {
+            style: "position: relative;"
+          }, (0, _hyperapp.h)(TextArea, {
+            oninput: function oninput(e) {
+              return actions.change({
+                inputA: String(e.target.value || '').trim()
+              });
+            },
+            placeholder: "input string or hex data"
+          }), (0, _hyperapp.h)("div", {
+            style: "position: absolute; bottom: 10px; right: 10px;"
+          }, trimHexPrefix(state.inputA || '').length / 2, " bytes")), (0, _hyperapp.h)("br", null), (0, _hyperapp.h)(Button, {
+            onclick: actions.keccak256
+          }, "Keccak256"), (0, _hyperapp.h)(Button, {
+            onclick: actions.sha256
+          }, "Sha256"), (0, _hyperapp.h)(Button, {
+            onclick: actions.utf8
+          }, "UTF8"), (0, _hyperapp.h)(Button, {
+            onclick: actions.hex
+          }, "Hex"), (0, _hyperapp.h)(Button, {
+            onclick: actions.sig
+          }, "Sig"), (0, _hyperapp.h)(Button, {
+            onclick: actions.break32
+          }, "Break(32)"));
+        };
+      }
+    }), (0, _hyperapp.h)(_router.Route, {
+      path: "/hex",
+      render: function render() {
+        return function () {
+          return (0, _hyperapp.h)("div", null, (0, _hyperapp.h)("h4", null, "String & Hex Tools"), (0, _hyperapp.h)("div", {
+            style: "position: relative;"
+          }, (0, _hyperapp.h)(TextArea, {
+            oninput: function oninput(e) {
+              return actions.change({
+                inputA: String(e.target.value || '').trim()
+              });
+            },
+            placeholder: "input string or hex data"
+          }), (0, _hyperapp.h)("div", {
+            style: "position: absolute; bottom: 10px; right: 10px;"
+          }, trimHexPrefix(state.inputA || '').length / 2, " bytes")), (0, _hyperapp.h)("br", null), (0, _hyperapp.h)(Button, {
+            onclick: actions.keccak256
+          }, "Keccak256"), (0, _hyperapp.h)(Button, {
+            onclick: actions.sha256
+          }, "Sha256"), (0, _hyperapp.h)(Button, {
+            onclick: actions.utf8
+          }, "UTF8"), (0, _hyperapp.h)(Button, {
+            onclick: actions.hex
+          }, "Hex"), (0, _hyperapp.h)(Button, {
+            onclick: actions.sig
+          }, "Sig"), (0, _hyperapp.h)(Button, {
+            onclick: actions.break32
+          }, "Break(32)"));
+        };
+      }
+    }), (0, _hyperapp.h)(_router.Route, {
+      path: "/number",
+      render: function render() {
+        return function () {
+          return (0, _hyperapp.h)("div", null, (0, _hyperapp.h)("h4", null, "Number Tools"), (0, _hyperapp.h)("div", {
+            style: "position: relative;"
+          }, (0, _hyperapp.h)(TextArea, {
+            oninput: function oninput(e) {
+              return actions.change({
+                inputB: String(e.target.value || '').trim()
+              });
+            },
+            placeholder: "number data"
+          }), (0, _hyperapp.h)("div", {
+            style: "position: absolute; bottom: 10px; right: 10px;"
+          }, trimHexPrefix(state.inputB || '').length / 2, " bytes")), (0, _hyperapp.h)(Button, {
+            onclick: actions.eval
+          }, "Eval"), (0, _hyperapp.h)(Button, {
+            onclick: actions.toInt
+          }, ".toString(10)"), (0, _hyperapp.h)(Button, {
+            onclick: actions.bignumber
+          }, ".toString(16)"), (0, _hyperapp.h)(Button, {
+            onclick: actions.toWei
+          }, "Ether"), (0, _hyperapp.h)(Button, {
+            onclick: actions.toGWei
+          }, "Gwei"), (0, _hyperapp.h)(Button, {
+            onclick: actions.toEther
+          }, "Wei"), (0, _hyperapp.h)(Button, {
+            onclick: actions.pad32Left
+          }, "Pad32(Left)"));
+        };
+      }
+    }), (0, _hyperapp.h)(_router.Route, {
+      path: "/abi",
+      render: function render() {
+        return function () {
+          return (0, _hyperapp.h)("div", null, (0, _hyperapp.h)("h4", null, "ABI Tools"), (0, _hyperapp.h)("div", {
+            style: "position: relative;"
+          }, (0, _hyperapp.h)("input", {
+            type: "text",
+            id: "abi",
+            style: "padding: 15px;",
+            oninput: function oninput(e) {
+              return actions.onAbi(e.target.value.trim().replace(/memory|calldata/g, '').replace(/;/g, ""));
+            },
+            placeholder: "transfer(address to, uint tokens)"
+          }), Object.keys(state.abi, console.log(state.abi)).length ? (0, _hyperapp.h)("div", null, "  ", (0, _hyperapp.h)("br", null), (0, _hyperapp.h)("h3", null, state.abi[0].name, " ", (0, _hyperapp.h)("small", null, state.methodHash)), " ", (0, _hyperapp.h)("br", null), state.abi[0].inputs.map(function (arg, index) {
+            return (0, _hyperapp.h)("div", null, (0, _hyperapp.h)("b", null, arg.name || "Argument ".concat(index)), (0, _hyperapp.h)("br", null), (0, _hyperapp.h)("input", {
+              type: "text",
+              id: "arg".concat(index),
+              style: "padding: 15px;",
+              placeholder: arg.type
+            }), " ", (0, _hyperapp.h)("br", null), " ", (0, _hyperapp.h)("br", null));
+          }), (0, _hyperapp.h)(Button, {
+            onclick: actions.encode
+          }, "Encode"), (0, _hyperapp.h)(Button, {
+            onclick: function onclick(e) {
+              document.getElementById('abi').value = '';
+              actions.change({
+                abi: {},
+                methodString: '',
+                abiError: null
+              });
+            }
+          }, "Clear")) : (0, _hyperapp.h)("div", null, (0, _hyperapp.h)("br", null), state.abiError), (0, _hyperapp.h)("br", null), (0, _hyperapp.h)("br", null)));
+        };
+      }
+    }), (0, _hyperapp.h)(_router.Route, {
+      path: "/date",
+      render: function render() {
+        return function () {
+          return (0, _hyperapp.h)("div", null, (0, _hyperapp.h)("h3", null, "Date Tools (UTC)"), (0, _hyperapp.h)("div", null, (0, _hyperapp.h)("input", {
+            type: "text",
+            style: "padding: 20px;",
+            value: state.timestring,
+            oninput: function oninput(e) {
+              return actions.time(e.target.value);
+            }
+          })), (0, _hyperapp.h)("br", null), (0, _hyperapp.h)("div", null, state.timestamp, " ", (0, _hyperapp.h)("small", {
+            style: "cursor: pointer; user-select: none;",
+            onclick: function onclick(e) {
+              return actions.time(new Date().toLocaleString(undefined, {
+                day: 'numeric',
+                month: 'numeric',
+                year: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit',
+                timeZone: 'UTC'
+              }));
+            }
+          }, "refresh")));
+        };
+      }
+    }), (0, _hyperapp.h)(_router.Route, {
+      path: "/entropy",
+      render: function render() {
+        return function () {
+          return (0, _hyperapp.h)("div", null, (0, _hyperapp.h)("h3", null, "Entropy Tools"), (0, _hyperapp.h)(Button, {
+            onclick: function onclick(e) {
+              return actions.entropy(20);
+            }
+          }, "20 Bytes"), (0, _hyperapp.h)(Button, {
+            onclick: function onclick(e) {
+              return actions.entropy(32);
+            }
+          }, "32 Bytes"), (0, _hyperapp.h)(Button, {
+            onclick: function onclick(e) {
+              return actions.entropy(128);
+            }
+          }, "128 Bytes"));
+        };
+      }
+    }), (0, _hyperapp.h)(_router.Route, {
+      path: "/ens",
+      render: function render() {
+        return function () {
+          return (0, _hyperapp.h)("div", null, (0, _hyperapp.h)("h3", null, "ENS Tools"), (0, _hyperapp.h)("input", {
+            type: "text",
+            style: "padding: 15px; margin-right: 10px;",
+            state: state.ensName || '',
+            oninput: function oninput(e) {
+              return actions.change({
+                ensName: e.target.value || ''
+              });
+            },
+            placeholder: "ricmoo.firefly.eth"
+          }), (0, _hyperapp.h)(Button, {
+            onclick: function onclick(e) {
+              return actions.ensHash(state.ensName);
+            }
+          }, "Hash"));
+        };
+      }
+    }), (0, _hyperapp.h)(_router.Route, {
+      path: "/keys",
+      render: function render() {
+        return function () {
+          return (0, _hyperapp.h)("div", null, (0, _hyperapp.h)("h4", null, "Key Tools"), (0, _hyperapp.h)(Button, {
+            onclick: actions.generateKey
+          }, "Generate"), (0, _hyperapp.h)("br", null), (0, _hyperapp.h)("br", null), (0, _hyperapp.h)("br", null), (0, _hyperapp.h)("br", null), (0, _hyperapp.h)("b", null, "Sign Message"), " ", (0, _hyperapp.h)("br", null), (0, _hyperapp.h)("br", null), (0, _hyperapp.h)("input", {
+            type: "text",
+            id: "privKey",
+            style: "padding: 15px;",
+            placeholder: "private key"
+          }), (0, _hyperapp.h)("input", {
+            type: "text",
+            id: "message",
+            style: "padding: 15px;",
+            placeholder: "message"
+          }), " ", (0, _hyperapp.h)("br", null), (0, _hyperapp.h)("br", null), (0, _hyperapp.h)(Button, {
+            onclick: function onclick() {
+              return actions.sign({
+                privateKey: document.getElementById('privKey').value,
+                message: document.getElementById('message').value
+              });
+            }
+          }, "Sign"));
+        };
+      }
+    })))), (0, _hyperapp.h)(Results, {
       id: "results"
     }, state.results.concat(state.errors).map(function (v, i) {
       return (0, _hyperapp.h)("div", {
@@ -15294,6 +15432,27 @@ var Code = function Code() {
 
 var Routes = function Routes() {
   return (0, _hyperapp.h)(_router.Switch, null, (0, _hyperapp.h)(_router.Route, {
+    path: "/number",
+    render: Code
+  }), (0, _hyperapp.h)(_router.Route, {
+    path: "/abi",
+    render: Code
+  }), (0, _hyperapp.h)(_router.Route, {
+    path: "/hex",
+    render: Code
+  }), (0, _hyperapp.h)(_router.Route, {
+    path: "/date",
+    render: Code
+  }), (0, _hyperapp.h)(_router.Route, {
+    path: "/entropy",
+    render: Code
+  }), (0, _hyperapp.h)(_router.Route, {
+    path: "/keys",
+    render: Code
+  }), (0, _hyperapp.h)(_router.Route, {
+    path: "/ens",
+    render: Code
+  }), (0, _hyperapp.h)(_router.Route, {
     path: "/",
     render: Code
   }), (0, _hyperapp.h)(_router.Route, {
@@ -15332,7 +15491,7 @@ var parent = module.bundle.parent;
 if ((!parent || !parent.isParcelRequire) && typeof WebSocket !== 'undefined') {
   var hostname = "" || location.hostname;
   var protocol = location.protocol === 'https:' ? 'wss' : 'ws';
-  var ws = new WebSocket(protocol + '://' + hostname + ':' + "38009" + '/');
+  var ws = new WebSocket(protocol + '://' + hostname + ':' + "32873" + '/');
 
   ws.onmessage = function (event) {
     var data = JSON.parse(event.data);

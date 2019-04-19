@@ -22,6 +22,12 @@ styled.injectGlobal`
   }
 `;
 
+// standard route method
+const route = pathname => {
+  window.scrollTo(0, 0);
+  history.pushState(null, "", pathname);
+};
+
 // define initial app state
 const state = {
   location: location.state,
@@ -79,9 +85,12 @@ const actions = {
   },
   onAbi: val => (state, actions) => {
     try {
+      const inter = new ethers.utils.Interface([val]);
+
       actions.change({
         methodString: val,
-        abi: new ethers.utils.Interface([val]).abi,
+        methodHash: inter.functions[inter.abi[0].name].sighash,
+        abi: inter.abi,
       });
     } catch (error) {
       actions.change({ abiError: error.message });
@@ -100,7 +109,13 @@ const actions = {
   },
   keccak256: () => (state, actions) => {
     try {
-      actions.result(`keccak256("${state.inputA || ''}") => ${utils.keccak256(utils.solidityPack(['string'], [state.inputA || '']))}`);
+      if (String(state.inputA).indexOf('0x') === 0) {
+        actions.result(`keccak256("${state.inputA || ''}") => ${
+          utils.keccak256(state.inputA || '')}`);
+      } else {
+        actions.result(`keccak256(solidityPack("${state.inputA || ''}")) => ${
+          utils.keccak256(utils.solidityPack(['string'], [state.inputA || '']))}`);
+      }
     } catch (error) { actions.error(error); }
   },
   break32: () => (state, actions) => {
@@ -254,11 +269,6 @@ const abiEncode = encodePacked;
 // lower case it
 const lower = v => String(v).toLowerCase();
 
-// are you sure message for unload.
-window.onbeforeunload = function(e) {
-  return 'Are you sure you want to close this tab. Data could be lost!';
-};
-
 // Not found page
 const NotFound = () => (
   <div style={{ padding: '20%', 'padding-top': '100px' }}>
@@ -339,6 +349,25 @@ const Column = styled.div`
   padding-bottom: 100px;
 `;
 
+const Buttons = styled.div`
+  margin-top: 40px;
+  margin-bottom: 80px;
+`;
+
+const PageButton = styled.span`
+  margin-right: 20px;
+  margin-bottom: 40px;
+  border-right: 1px solid #333;
+  cursor: pointer;
+  padding-right: 20px;
+  text-decoration: none;
+  margin-bottom: 20px;
+
+  &:hover {
+    color: blue;
+  }
+`;
+
 const Code = () => (state, actions, v = console.log(state)) => (
   <div style="width: 100%;">
     <Wrapper>
@@ -346,101 +375,145 @@ const Code = () => (state, actions, v = console.log(state)) => (
         <h1>EthToolBox</h1>
         <small style="margin-top: -15px"><i>built with <a href="https://github.com/ethers-io/ethers.js" target="_blank">ethers.js</a> and <a href="https://github.com/ethjs" target="_blank">ethjs</a></i></small>
         <div>
-          <br />
-          <h4>String & Hex Tools</h4>
-          <div style="position: relative;">
-            <TextArea oninput={e => actions.change({ inputA: String(e.target.value || '').trim() })} placeholder="input string or hex data"></TextArea>
-            <div style="position: absolute; bottom: 10px; right: 10px;">{trimHexPrefix(state.inputA || '').length / 2} bytes</div>
-          </div>
-          <br />
-          <Button onclick={actions.sha256}>Sha256</Button>
-          <Button onclick={actions.keccak256}>Keccak256</Button>
-          <Button onclick={actions.utf8}>UTF8</Button>
-          <Button onclick={actions.hex}>Hex</Button>
-          <Button onclick={actions.sig}>Sig</Button>
-          <Button onclick={actions.break32}>Break(32)</Button>
 
-          <br /><br /><br />
+          <Buttons>
+            <PageButton onclick={e => route('/hex')}>Hex</PageButton>
+            <PageButton onclick={e => route('/number')}>Number</PageButton>
+            <PageButton onclick={e => route('/abi')}>ABI</PageButton>
+            <PageButton onclick={e => route('/date')}>Date/Time</PageButton>
+            <PageButton onclick={e => route('/entropy')}>Entropy</PageButton>
+            <PageButton onclick={e => route('/ens')}>ENS</PageButton>
+            <PageButton onclick={e => route('/keys')}>Signatures</PageButton>
+          </Buttons>
 
-          <h4>Number Tools</h4>
-          <div style="position: relative;">
-            <TextArea oninput={e => actions.change({ inputB: String(e.target.value || '').trim() })} placeholder="number data"></TextArea>
-            <div style="position: absolute; bottom: 10px; right: 10px;">{trimHexPrefix(state.inputB || '').length / 2} bytes</div>
-          </div>
+          <Route path="/" render={() => () => (
+            <div>
+              <h4>String & Hex Tools</h4>
+              <div style="position: relative;">
+                <TextArea oninput={e => actions.change({ inputA: String(e.target.value || '').trim() })} placeholder="input string or hex data"></TextArea>
+                <div style="position: absolute; bottom: 10px; right: 10px;">{trimHexPrefix(state.inputA || '').length / 2} bytes</div>
+              </div>
+              <br />
+              <Button onclick={actions.keccak256}>Keccak256</Button>
+              <Button onclick={actions.sha256}>Sha256</Button>
+              <Button onclick={actions.utf8}>UTF8</Button>
+              <Button onclick={actions.hex}>Hex</Button>
+              <Button onclick={actions.sig}>Sig</Button>
+              <Button onclick={actions.break32}>Break(32)</Button>
+            </div>
+          )} />
 
-          <Button onclick={actions.eval}>Eval</Button>
-          <Button onclick={actions.toInt}>.toString(10)</Button>
-          <Button onclick={actions.bignumber}>.toString(16)</Button>
-          <Button onclick={actions.toWei}>Ether</Button>
-          <Button onclick={actions.toGWei}>Gwei</Button>
-          <Button onclick={actions.toEther}>Wei</Button>
-          <Button onclick={actions.pad32Left}>Pad32(Left)</Button>
+          <Route path="/hex" render={() => () => (
+            <div>
+              <h4>String & Hex Tools</h4>
+              <div style="position: relative;">
+                <TextArea oninput={e => actions.change({ inputA: String(e.target.value || '').trim() })} placeholder="input string or hex data"></TextArea>
+                <div style="position: absolute; bottom: 10px; right: 10px;">{trimHexPrefix(state.inputA || '').length / 2} bytes</div>
+              </div>
+              <br />
+              <Button onclick={actions.keccak256}>Keccak256</Button>
+              <Button onclick={actions.sha256}>Sha256</Button>
+              <Button onclick={actions.utf8}>UTF8</Button>
+              <Button onclick={actions.hex}>Hex</Button>
+              <Button onclick={actions.sig}>Sig</Button>
+              <Button onclick={actions.break32}>Break(32)</Button>
+            </div>
+          )} />
+
+          <Route path="/number" render={() => () => (
+            <div>
+              <h4>Number Tools</h4>
+              <div style="position: relative;">
+                <TextArea oninput={e => actions.change({ inputB: String(e.target.value || '').trim() })} placeholder="number data"></TextArea>
+                <div style="position: absolute; bottom: 10px; right: 10px;">{trimHexPrefix(state.inputB || '').length / 2} bytes</div>
+              </div>
+
+              <Button onclick={actions.eval}>Eval</Button>
+              <Button onclick={actions.toInt}>.toString(10)</Button>
+              <Button onclick={actions.bignumber}>.toString(16)</Button>
+              <Button onclick={actions.toWei}>Ether</Button>
+              <Button onclick={actions.toGWei}>Gwei</Button>
+              <Button onclick={actions.toEther}>Wei</Button>
+              <Button onclick={actions.pad32Left}>Pad32(Left)</Button>
+            </div>
+          )} />
+
+          <Route path="/abi" render={() => () => (
+            <div>
+              <h4>ABI Tools</h4>
+              <div style="position: relative;">
+                <input type="text" id="abi" style="padding: 15px;" oninput={e => actions.onAbi(e.target.value.trim().replace(/memory|calldata/g, '').replace(/;/g, ""))} placeholder="transfer(address to, uint tokens)" />
+
+                {Object.keys(state.abi, console.log(state.abi)).length ? (<div>  <br />
+                  <h3>{state.abi[0].name} <small>{state.methodHash}</small></h3> <br />
+                  {state.abi[0].inputs.map((arg, index) => (<div>
+                    <b>{arg.name || `Argument ${index}`}</b><br />
+                    <input type="text" id={`arg${index}`} style="padding: 15px;" placeholder={arg.type} /> <br /> <br />
+                  </div>))}
+
+                  <Button onclick={actions.encode}>Encode</Button>
+                  <Button onclick={e => {
+                    (document.getElementById('abi').value = '');
+                    actions.change({ abi: {}, methodString: '', abiError: null })
+                  }}>Clear</Button>
+                </div>) : (<div><br />{state.abiError}</div>)}
+
+                <br /><br />
+              </div>
+            </div>
+          )} />
+
+          <Route path="/date" render={() => () => (
+            <div>
+              <h3>Date Tools (UTC)</h3>
+              <div><input type="text" style="padding: 20px;" value={state.timestring} oninput={e => actions.time(e.target.value)} /></div>
+              <br />
+              <div>{state.timestamp} <small style="cursor: pointer; user-select: none;" onclick={e => actions.time((new Date()).toLocaleString(undefined, {
+                day: 'numeric',
+                month: 'numeric',
+                year: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit',
+                timeZone: 'UTC',
+              }))}>refresh</small></div>
+            </div>
+          )} />
+
+          <Route path="/entropy" render={() => () => (
+            <div>
+              <h3>Entropy Tools</h3>
+              <Button onclick={e => actions.entropy(20)}>20 Bytes</Button>
+              <Button onclick={e => actions.entropy(32)}>32 Bytes</Button>
+              <Button onclick={e => actions.entropy(128)}>128 Bytes</Button>
+            </div>
+          )} />
+
+          <Route path="/ens" render={() => () => (
+            <div>
+              <h3>ENS Tools</h3>
+              <input type="text" style="padding: 15px; margin-right: 10px;" state={state.ensName || ''} oninput={e => actions.change({ ensName: e.target.value || '' })} placeholder="ricmoo.firefly.eth" />
+              <Button onclick={e => actions.ensHash(state.ensName)}>Hash</Button>
+            </div>
+          )} />
+
+          <Route path="/keys" render={() => () => (
+            <div>
+              <h4>Key Tools</h4>
+              <Button onclick={actions.generateKey}>Generate</Button>
+
+              <br /><br /><br /><br />
+
+              <b>Sign Message</b> <br /><br />
+              <input type="text" id="privKey" style="padding: 15px;" placeholder="private key" />
+              <input type="text" id="message" style="padding: 15px;" placeholder="message" /> <br /><br />
+              <Button onclick={() => actions.sign({
+                privateKey: document.getElementById('privKey').value,
+                message: document.getElementById('message').value,
+              })}>Sign</Button>
+            </div>
+          )} />
+
         </div>
-
-        <br /><br /><br />
-
-        <h4>ABI Tools</h4>
-        <div style="position: relative;">
-          <input type="text" id="abi" style="padding: 15px;" oninput={e => actions.onAbi(e.target.value.trim().replace(/memory|calldata/g, '').replace(/;/g, ""))} placeholder="transfer(address to, uint tokens)" />
-
-          {Object.keys(state.abi).length ? (<div>  <br />
-            <h3>{state.abi[0].name}</h3> <br />
-            {state.abi[0].inputs.map((arg, index) => (<div>
-              <b>{arg.name || `Argument ${index}`}</b><br />
-              <input type="text" id={`arg${index}`} style="padding: 15px;" placeholder={arg.type} /> <br /> <br />
-            </div>))}
-
-            <Button onclick={actions.encode}>Encode</Button>
-            <Button onclick={e => {
-              (document.getElementById('abi').value = '');
-              actions.change({ abi: {}, methodString: '', abiError: null })
-            }}>Clear</Button>
-          </div>) : (<div><br />{state.abiError}</div>)}
-
-          <br /><br />
-        </div>
-      </Column>
-
-      <Column>
-        <h3>Date Tools (UTC)</h3>
-        <div><input type="text" style="padding: 20px;" value={state.timestring} oninput={e => actions.time(e.target.value)} /></div>
-        <br />
-        <div>{state.timestamp} <small style="cursor: pointer; user-select: none;" onclick={e => actions.time((new Date()).toLocaleString(undefined, {
-          day: 'numeric',
-          month: 'numeric',
-          year: 'numeric',
-          hour: '2-digit',
-          minute: '2-digit',
-          timeZone: 'UTC',
-        }))}>refresh</small></div>
-
-        <br /><br /><br />
-
-        <h3>Entropy Tools</h3>
-        <Button onclick={e => actions.entropy(20)}>20 Bytes</Button>
-        <Button onclick={e => actions.entropy(32)}>32 Bytes</Button>
-        <Button onclick={e => actions.entropy(128)}>128 Bytes</Button>
-
-        <br /><br /><br />
-
-        <h3>ENS Tools</h3>
-        <input type="text" style="padding: 15px; margin-right: 10px;" state={state.ensName || ''} oninput={e => actions.change({ ensName: e.target.value || '' })} placeholder="ricmoo.firefly.eth" />
-        <Button onclick={e => actions.ensHash(state.ensName)}>Hash</Button>
-
-        <br /><br /><br />
-
-        <h4>Key Tools</h4>
-        <Button onclick={actions.generateKey}>Generate</Button>
-
-        <br /><br /><br />
-
-        <b>Sign Message</b> <br /><br />
-        <input type="text" id="privKey" style="padding: 15px;" placeholder="private key" />
-        <input type="text" id="message" style="padding: 15px;" placeholder="message" /> <br /><br />
-        <Button onclick={() => actions.sign({
-          privateKey: document.getElementById('privKey').value,
-          message: document.getElementById('message').value,
-        })}>Sign</Button>
       </Column>
     </Wrapper>
 
@@ -459,6 +532,13 @@ const Code = () => (state, actions, v = console.log(state)) => (
 // routes for app
 const Routes = () => (
   <Switch>
+    <Route path="/number" render={Code} />
+    <Route path="/abi" render={Code} />
+    <Route path="/hex" render={Code} />
+    <Route path="/date" render={Code} />
+    <Route path="/entropy" render={Code} />
+    <Route path="/keys" render={Code} />
+    <Route path="/ens" render={Code} />
     <Route path="/" render={Code} />
     <Route render={NotFound} />
   </Switch>
