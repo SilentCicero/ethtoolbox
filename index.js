@@ -113,54 +113,74 @@ const actions = {
         actions.result(`keccak256("${state.inputA || ''}") => ${
           utils.keccak256(state.inputA || '')}`);
       } else {
-        actions.result(`keccak256(solidityPack("${state.inputA || ''}")) => ${
+        actions.result(`keccak256(solidityPack(["string"], ["${state.inputA || ''}"])) => ${
           utils.keccak256(utils.solidityPack(['string'], [state.inputA || '']))}`);
       }
     } catch (error) { actions.error(error); }
   },
   break32: () => (state, actions) => {
     try {
-      actions.result((<div>{`break("${state.inputA || ''}") => `} {stripHex(state.inputA || '').match(/.{0,64}/g).map((v, i) => (<div><span style="min-width: 30px; display: inline-block;">{i}|{i * 32}</span> {v}</div>))}</div>));
+      actions.result((<div>{`break("${state.inputA || ''}") => `} <br /><br /> {stripHex(state.inputA || '').trim().match(/.{0,64}/g).slice(0, -1).map((v, i) => (<div style="display: flex;"><span style="min-width: 80px; display: inline-block;">{i}|{i * 32}</span> 0x{v}</div>))}</div>));
+    } catch (error) { actions.error(error); }
+  },
+  break32Sig: () => (state, actions) => {
+    try {
+      actions.result((<div>{`break("${state.inputA || ''}") => `} <br /><br /> <div>Signature: 0x{stripHex(state.inputA || '').slice(0, 8)}</div> {stripHex(state.inputA || '').slice(8).trim().match(/.{0,64}/g).slice(0, -1).map((v, i) => (<div style="display: flex;"><span style="min-width: 80px; display: inline-block;">{i}|{i * 32}</span> 0x{v}</div>))}</div>));
     } catch (error) { actions.error(error); }
   },
   sha256: () => (state, actions) => {
     try {
-      actions.result(`sha256("${state.inputA || ''}") => ${utils.sha256(utils.solidityPack(['string'], [state.inputA || '']))}`);
+      actions.result(`sha256(solidityPack(['string'], ["${state.inputA || ''}"])) => ${utils.sha256(utils.solidityPack(['string'], [state.inputA || '']))}`);
     } catch (error) { actions.error(error); }
   },
   sig: () => (state, actions) => {
     try {
-      actions.result(`bytes4(keccak256("${state.inputA || ''}")) => ${utils.keccak256(utils.solidityPack(['string'], [state.inputA || ''])).slice(0, 10)}`);
+      actions.result(`keccak256(solidityPack(['string'], ["${state.inputA || ''}"])) => ${utils.keccak256(utils.solidityPack(['string'], [state.inputA || ''])).slice(0, 10)}`);
     } catch (error) { actions.error(error); }
   },
   hex: () => (state, actions) => {
     try {
-      actions.result(`hex("${state.inputA || ''}") => ${utils.hexlify(utils.toUtf8Bytes(state.inputA || ''))}`);
+      actions.result(`toUtf8Bytes("${state.inputA || ''}") => ${utils.hexlify(utils.toUtf8Bytes(state.inputA || ''))}`);
     } catch (error) { actions.error(error); }
   },
   toInt: () => (state, actions) => {
     try {
-      actions.result(`BN("${state.inputB || ''}").toString(10) => ${utils.bigNumberify(state.inputB || '').toString(10)}`);
+      actions.result(`bigNumberify("${state.inputB || ''}").toString(10) => ${utils.bigNumberify(state.inputB || '').toString(10)}`);
     } catch (error) { actions.error(error); }
   },
   toWei: () => (state, actions) => {
     try {
-      actions.result(`wei(ether("${state.inputB || ''}")) => ${utils.parseEther(state.inputB || '')} wei`);
+      actions.result(`parseEther("${state.inputB || ''}") => ${utils.parseEther(state.inputB || '')} wei`);
     } catch (error) { actions.error(error); }
   },
   toGWei: () => (state, actions) => {
     try {
-      actions.result(`gwei("${state.inputB || ''}") => ${utils.parseUnits(state.inputB || '', 'gwei')} wei`);
+      actions.result(`parseUnits("${state.inputB || ''}", 'gwei') => ${utils.parseUnits(state.inputB || '', 'gwei')} wei`);
     } catch (error) { actions.error(error); }
   },
   toEther: () => (state, actions) => {
     try {
-      actions.result(`wei("${state.inputB || ''}") => ${utils.formatEther(state.inputB || '')} ether`);
+      actions.result(`formatEther("${state.inputB || ''}") => ${utils.formatEther(state.inputB || '')} ether`);
     } catch (error) { actions.error(error); }
   },
   pad32Left: () => (state, actions) => {
     try {
-      actions.result(`pad32("${state.inputB || ''}") => ${utils.hexZeroPad(state.inputB || '', 32)}`);
+      actions.result(`hexZeroPad("${state.inputB || ''}") => ${utils.hexZeroPad(state.inputB || '', 32)}`);
+    } catch (error) { actions.error(error); }
+  },
+  empty20: () => (state, actions) => {
+    try {
+      actions.result(`hexZeroPad("0x0", 20) => ${utils.hexZeroPad('0x0', 20)}`);
+    } catch (error) { actions.error(error); }
+  },
+  empty32: () => (state, actions) => {
+    try {
+      actions.result(`hexZeroPad("0x0", 32) => ${utils.hexZeroPad('0x0', 32)}`);
+    } catch (error) { actions.error(error); }
+  },
+  empty64: () => (state, actions) => {
+    try {
+      actions.result(`hexZeroPad("0x0", 64) => ${utils.hexZeroPad('0x0', 64)}`);
     } catch (error) { actions.error(error); }
   },
   generateKey: () => (state, actions) => {
@@ -176,12 +196,12 @@ const actions = {
   },
   bignumber: () => (state, actions) => {
     try {
-      actions.result(`BN("${state.inputB || ''}").toString(10) => ${utils.hexlify(utils.bigNumberify(state.inputB || ''))}`);
+      actions.result(`hexlify(bigNumberify("${state.inputB || ''}")) => ${utils.hexlify(utils.bigNumberify(state.inputB || ''))}`);
     } catch (error) { actions.error(error); }
   },
   utf8: () => (state, actions) => {
     try {
-      actions.result(`utf8("${state.inputA || ''}") => ${utils.toUtf8String(state.inputA || '')}`);
+      actions.result(`toUtf8String("${state.inputA || ''}") => ${utils.toUtf8String(state.inputA || '')}`);
     } catch (error) { actions.error(error); }
   },
   console: val => (state, actions) => {
@@ -198,9 +218,14 @@ const actions = {
   },
   entropy: len => (state, actions) => {
     try {
-      actions.result(`randomBytes(${len}) => ${utils.hexlify(utils.randomBytes(len))}`);
+      actions.result(`hexlify(randomBytes(${len})) => ${utils.hexlify(utils.randomBytes(len))}`);
     } catch (error) {
     }
+  },
+  recoverAddress: ({ digest, signature }) => (state, actions) => {
+    try {
+      actions.result((<div>recoverAddress("{digest}", "{signature}") {`=>`} <br /><br /> {utils.recoverAddress(digest, signature)}</div>));
+    } catch (error) { actions.error(error); }
   },
   sign: obj => async (state, actions) => {
     try {
@@ -217,6 +242,12 @@ const actions = {
         <br /><br />
         Solidity: <br />
         0x{utils.hexZeroPad(utils.hexlify(splitSig.v), 32).slice(2)}{splitSig.r.slice(2)}{splitSig.s.slice(2)}
+
+        <br /><br />
+        Parts: <br />
+        0x{utils.hexZeroPad(utils.hexlify(splitSig.v), 32).slice(2)} <br />
+        {splitSig.r.slice(2)} <br />
+        {splitSig.s.slice(2)}
       </div>));
     } catch (error) { actions.error(error); }
   },
@@ -379,11 +410,12 @@ const Code = () => (state, actions, v = console.log(state)) => (
           <Buttons>
             <PageButton onclick={e => route('/hex')}>Hex</PageButton>
             <PageButton onclick={e => route('/number')}>Number</PageButton>
+            <PageButton onclick={e => route('/units')}>Units</PageButton>
             <PageButton onclick={e => route('/abi')}>ABI</PageButton>
             <PageButton onclick={e => route('/date')}>Date/Time</PageButton>
             <PageButton onclick={e => route('/entropy')}>Entropy</PageButton>
             <PageButton onclick={e => route('/ens')}>ENS</PageButton>
-            <PageButton onclick={e => route('/keys')}>Signatures</PageButton>
+            <PageButton onclick={e => route('/keys')}>Keys/Signatures</PageButton>
           </Buttons>
 
           <Route path="/" render={() => () => (
@@ -417,6 +449,12 @@ const Code = () => (state, actions, v = console.log(state)) => (
               <Button onclick={actions.hex}>Hex</Button>
               <Button onclick={actions.sig}>Sig</Button>
               <Button onclick={actions.break32}>Break(32)</Button>
+              <Button onclick={actions.break32Sig}>BreakWSig(32)</Button>
+
+              <br /><br />
+              <Button onclick={actions.empty20}>Null(20 Bytes)</Button>
+              <Button onclick={actions.empty32}>Null(32 Bytes)</Button>
+              <Button onclick={actions.empty64}>Null(64 Bytes)</Button>
             </div>
           )} />
 
@@ -431,10 +469,25 @@ const Code = () => (state, actions, v = console.log(state)) => (
               <Button onclick={actions.eval}>Eval</Button>
               <Button onclick={actions.toInt}>.toString(10)</Button>
               <Button onclick={actions.bignumber}>.toString(16)</Button>
-              <Button onclick={actions.toWei}>Ether</Button>
-              <Button onclick={actions.toGWei}>Gwei</Button>
-              <Button onclick={actions.toEther}>Wei</Button>
               <Button onclick={actions.pad32Left}>Pad32(Left)</Button>
+                            <br /><br />
+              <Button onclick={actions.empty20}>Null(20 Bytes)</Button>
+              <Button onclick={actions.empty32}>Null(32 Bytes)</Button>
+              <Button onclick={actions.empty64}>Null(64 Bytes)</Button>
+            </div>
+          )} />
+
+          <Route path="/units" render={() => () => (
+            <div>
+              <h4>Unit Tools</h4>
+              <div style="position: relative;">
+                <TextArea oninput={e => actions.change({ inputB: String(e.target.value || '').trim() })} placeholder="number data"></TextArea>
+                <div style="position: absolute; bottom: 10px; right: 10px;">{trimHexPrefix(state.inputB || '').length / 2} bytes</div>
+              </div>
+
+              <Button onclick={actions.toWei}>Ether -> Wei</Button>
+              <Button onclick={actions.toGWei}>Gwei -> Wei</Button>
+              <Button onclick={actions.toEther}>Wei -> Ether</Button>
             </div>
           )} />
 
@@ -504,12 +557,22 @@ const Code = () => (state, actions, v = console.log(state)) => (
               <br /><br /><br /><br />
 
               <b>Sign Message</b> <br /><br />
-              <input type="text" id="privKey" style="padding: 15px;" placeholder="private key" />
-              <input type="text" id="message" style="padding: 15px;" placeholder="message" /> <br /><br />
+              <input type="text" id="privKey" style="padding: 15px;" placeholder="private key (0x)" />
+              <input type="text" id="message" style="padding: 15px;" placeholder="digest (0x)" /> <br /><br />
               <Button onclick={() => actions.sign({
                 privateKey: document.getElementById('privKey').value,
                 message: document.getElementById('message').value,
-              })}>Sign</Button>
+              })}>Sign Digest</Button>
+
+              <br /><br /><br /><br />
+
+              <b>Recover Address</b> <br /><br />
+              <input type="text" id="digest" style="padding: 15px;" placeholder="digest hash (0x)" />
+              <input type="text" id="signature" style="padding: 15px;" placeholder="signature (0x)" /> <br /><br />
+              <Button onclick={() => actions.recoverAddress({
+                digest: document.getElementById('digest').value,
+                signature: document.getElementById('signature').value,
+              })}>Recover Address</Button>
             </div>
           )} />
 
@@ -535,6 +598,7 @@ const Routes = () => (
     <Route path="/number" render={Code} />
     <Route path="/abi" render={Code} />
     <Route path="/hex" render={Code} />
+    <Route path="/units" render={Code} />
     <Route path="/date" render={Code} />
     <Route path="/entropy" render={Code} />
     <Route path="/keys" render={Code} />

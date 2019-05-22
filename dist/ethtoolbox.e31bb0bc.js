@@ -14876,7 +14876,7 @@ var actions = {
         if (String(state.inputA).indexOf('0x') === 0) {
           actions.result("keccak256(\"".concat(state.inputA || '', "\") => ").concat(utils.keccak256(state.inputA || '')));
         } else {
-          actions.result("keccak256(solidityPack(\"".concat(state.inputA || '', "\")) => ").concat(utils.keccak256(utils.solidityPack(['string'], [state.inputA || '']))));
+          actions.result("keccak256(solidityPack([\"string\"], [\"".concat(state.inputA || '', "\"])) => ").concat(utils.keccak256(utils.solidityPack(['string'], [state.inputA || '']))));
         }
       } catch (error) {
         actions.error(error);
@@ -14886,10 +14886,27 @@ var actions = {
   break32: function break32() {
     return function (state, actions) {
       try {
-        actions.result((0, _hyperapp.h)("div", null, "break(\"".concat(state.inputA || '', "\") => "), " ", stripHex(state.inputA || '').match(/.{0,64}/g).map(function (v, i) {
-          return (0, _hyperapp.h)("div", null, (0, _hyperapp.h)("span", {
-            style: "min-width: 30px; display: inline-block;"
-          }, i, "|", i * 32), " ", v);
+        actions.result((0, _hyperapp.h)("div", null, "break(\"".concat(state.inputA || '', "\") => "), " ", (0, _hyperapp.h)("br", null), (0, _hyperapp.h)("br", null), " ", stripHex(state.inputA || '').trim().match(/.{0,64}/g).slice(0, -1).map(function (v, i) {
+          return (0, _hyperapp.h)("div", {
+            style: "display: flex;"
+          }, (0, _hyperapp.h)("span", {
+            style: "min-width: 80px; display: inline-block;"
+          }, i, "|", i * 32), " 0x", v);
+        })));
+      } catch (error) {
+        actions.error(error);
+      }
+    };
+  },
+  break32Sig: function break32Sig() {
+    return function (state, actions) {
+      try {
+        actions.result((0, _hyperapp.h)("div", null, "break(\"".concat(state.inputA || '', "\") => "), " ", (0, _hyperapp.h)("br", null), (0, _hyperapp.h)("br", null), " ", (0, _hyperapp.h)("div", null, "Signature: 0x", stripHex(state.inputA || '').slice(0, 8)), " ", stripHex(state.inputA || '').slice(8).trim().match(/.{0,64}/g).slice(0, -1).map(function (v, i) {
+          return (0, _hyperapp.h)("div", {
+            style: "display: flex;"
+          }, (0, _hyperapp.h)("span", {
+            style: "min-width: 80px; display: inline-block;"
+          }, i, "|", i * 32), " 0x", v);
         })));
       } catch (error) {
         actions.error(error);
@@ -14899,7 +14916,7 @@ var actions = {
   sha256: function sha256() {
     return function (state, actions) {
       try {
-        actions.result("sha256(\"".concat(state.inputA || '', "\") => ").concat(utils.sha256(utils.solidityPack(['string'], [state.inputA || '']))));
+        actions.result("sha256(solidityPack(['string'], [\"".concat(state.inputA || '', "\"])) => ").concat(utils.sha256(utils.solidityPack(['string'], [state.inputA || '']))));
       } catch (error) {
         actions.error(error);
       }
@@ -14908,7 +14925,7 @@ var actions = {
   sig: function sig() {
     return function (state, actions) {
       try {
-        actions.result("bytes4(keccak256(\"".concat(state.inputA || '', "\")) => ").concat(utils.keccak256(utils.solidityPack(['string'], [state.inputA || ''])).slice(0, 10)));
+        actions.result("keccak256(solidityPack(['string'], [\"".concat(state.inputA || '', "\"])) => ").concat(utils.keccak256(utils.solidityPack(['string'], [state.inputA || ''])).slice(0, 10)));
       } catch (error) {
         actions.error(error);
       }
@@ -14917,7 +14934,7 @@ var actions = {
   hex: function hex() {
     return function (state, actions) {
       try {
-        actions.result("hex(\"".concat(state.inputA || '', "\") => ").concat(utils.hexlify(utils.toUtf8Bytes(state.inputA || ''))));
+        actions.result("toUtf8Bytes(\"".concat(state.inputA || '', "\") => ").concat(utils.hexlify(utils.toUtf8Bytes(state.inputA || ''))));
       } catch (error) {
         actions.error(error);
       }
@@ -14926,7 +14943,7 @@ var actions = {
   toInt: function toInt() {
     return function (state, actions) {
       try {
-        actions.result("BN(\"".concat(state.inputB || '', "\").toString(10) => ").concat(utils.bigNumberify(state.inputB || '').toString(10)));
+        actions.result("bigNumberify(\"".concat(state.inputB || '', "\").toString(10) => ").concat(utils.bigNumberify(state.inputB || '').toString(10)));
       } catch (error) {
         actions.error(error);
       }
@@ -14935,7 +14952,7 @@ var actions = {
   toWei: function toWei() {
     return function (state, actions) {
       try {
-        actions.result("wei(ether(\"".concat(state.inputB || '', "\")) => ").concat(utils.parseEther(state.inputB || ''), " wei"));
+        actions.result("parseEther(\"".concat(state.inputB || '', "\") => ").concat(utils.parseEther(state.inputB || ''), " wei"));
       } catch (error) {
         actions.error(error);
       }
@@ -14944,7 +14961,7 @@ var actions = {
   toGWei: function toGWei() {
     return function (state, actions) {
       try {
-        actions.result("gwei(\"".concat(state.inputB || '', "\") => ").concat(utils.parseUnits(state.inputB || '', 'gwei'), " wei"));
+        actions.result("parseUnits(\"".concat(state.inputB || '', "\", 'gwei') => ").concat(utils.parseUnits(state.inputB || '', 'gwei'), " wei"));
       } catch (error) {
         actions.error(error);
       }
@@ -14953,7 +14970,7 @@ var actions = {
   toEther: function toEther() {
     return function (state, actions) {
       try {
-        actions.result("wei(\"".concat(state.inputB || '', "\") => ").concat(utils.formatEther(state.inputB || ''), " ether"));
+        actions.result("formatEther(\"".concat(state.inputB || '', "\") => ").concat(utils.formatEther(state.inputB || ''), " ether"));
       } catch (error) {
         actions.error(error);
       }
@@ -14962,7 +14979,34 @@ var actions = {
   pad32Left: function pad32Left() {
     return function (state, actions) {
       try {
-        actions.result("pad32(\"".concat(state.inputB || '', "\") => ").concat(utils.hexZeroPad(state.inputB || '', 32)));
+        actions.result("hexZeroPad(\"".concat(state.inputB || '', "\") => ").concat(utils.hexZeroPad(state.inputB || '', 32)));
+      } catch (error) {
+        actions.error(error);
+      }
+    };
+  },
+  empty20: function empty20() {
+    return function (state, actions) {
+      try {
+        actions.result("hexZeroPad(\"0x0\", 20) => ".concat(utils.hexZeroPad('0x0', 20)));
+      } catch (error) {
+        actions.error(error);
+      }
+    };
+  },
+  empty32: function empty32() {
+    return function (state, actions) {
+      try {
+        actions.result("hexZeroPad(\"0x0\", 32) => ".concat(utils.hexZeroPad('0x0', 32)));
+      } catch (error) {
+        actions.error(error);
+      }
+    };
+  },
+  empty64: function empty64() {
+    return function (state, actions) {
+      try {
+        actions.result("hexZeroPad(\"0x0\", 64) => ".concat(utils.hexZeroPad('0x0', 64)));
       } catch (error) {
         actions.error(error);
       }
@@ -14982,7 +15026,7 @@ var actions = {
   bignumber: function bignumber() {
     return function (state, actions) {
       try {
-        actions.result("BN(\"".concat(state.inputB || '', "\").toString(10) => ").concat(utils.hexlify(utils.bigNumberify(state.inputB || ''))));
+        actions.result("hexlify(bigNumberify(\"".concat(state.inputB || '', "\")) => ").concat(utils.hexlify(utils.bigNumberify(state.inputB || ''))));
       } catch (error) {
         actions.error(error);
       }
@@ -14991,7 +15035,7 @@ var actions = {
   utf8: function utf8() {
     return function (state, actions) {
       try {
-        actions.result("utf8(\"".concat(state.inputA || '', "\") => ").concat(utils.toUtf8String(state.inputA || '')));
+        actions.result("toUtf8String(\"".concat(state.inputA || '', "\") => ").concat(utils.toUtf8String(state.inputA || '')));
       } catch (error) {
         actions.error(error);
       }
@@ -15023,15 +15067,26 @@ var actions = {
   entropy: function entropy(len) {
     return function (state, actions) {
       try {
-        actions.result("randomBytes(".concat(len, ") => ").concat(utils.hexlify(utils.randomBytes(len))));
+        actions.result("hexlify(randomBytes(".concat(len, ")) => ").concat(utils.hexlify(utils.randomBytes(len))));
       } catch (error) {}
+    };
+  },
+  recoverAddress: function recoverAddress(_ref) {
+    var digest = _ref.digest,
+        signature = _ref.signature;
+    return function (state, actions) {
+      try {
+        actions.result((0, _hyperapp.h)("div", null, "recoverAddress(\"", digest, "\", \"", signature, "\") ", "=>", " ", (0, _hyperapp.h)("br", null), (0, _hyperapp.h)("br", null), " ", utils.recoverAddress(digest, signature)));
+      } catch (error) {
+        actions.error(error);
+      }
     };
   },
   sign: function sign(obj) {
     return (
       /*#__PURE__*/
       function () {
-        var _ref = _asyncToGenerator(
+        var _ref2 = _asyncToGenerator(
         /*#__PURE__*/
         _regeneratorRuntime.default.mark(function _callee(state, actions) {
           var splitSig;
@@ -15041,7 +15096,7 @@ var actions = {
                 case 0:
                   try {
                     splitSig = new ethers.utils.SigningKey(obj.privateKey).signDigest(obj.message);
-                    actions.result((0, _hyperapp.h)("div", null, "sign(".concat(obj.privateKey, ", ").concat(obj.message, ") =>"), (0, _hyperapp.h)("br", null), (0, _hyperapp.h)("br", null), "Packed: ", (0, _hyperapp.h)("br", null), utils.joinSignature(splitSig), (0, _hyperapp.h)("br", null), (0, _hyperapp.h)("br", null), "Split: ", (0, _hyperapp.h)("br", null), JSON.stringify(splitSig, null, 2), (0, _hyperapp.h)("br", null), (0, _hyperapp.h)("br", null), "Solidity: ", (0, _hyperapp.h)("br", null), "0x", utils.hexZeroPad(utils.hexlify(splitSig.v), 32).slice(2), splitSig.r.slice(2), splitSig.s.slice(2)));
+                    actions.result((0, _hyperapp.h)("div", null, "sign(".concat(obj.privateKey, ", ").concat(obj.message, ") =>"), (0, _hyperapp.h)("br", null), (0, _hyperapp.h)("br", null), "Packed: ", (0, _hyperapp.h)("br", null), utils.joinSignature(splitSig), (0, _hyperapp.h)("br", null), (0, _hyperapp.h)("br", null), "Split: ", (0, _hyperapp.h)("br", null), JSON.stringify(splitSig, null, 2), (0, _hyperapp.h)("br", null), (0, _hyperapp.h)("br", null), "Solidity: ", (0, _hyperapp.h)("br", null), "0x", utils.hexZeroPad(utils.hexlify(splitSig.v), 32).slice(2), splitSig.r.slice(2), splitSig.s.slice(2), (0, _hyperapp.h)("br", null), (0, _hyperapp.h)("br", null), "Parts: ", (0, _hyperapp.h)("br", null), "0x", utils.hexZeroPad(utils.hexlify(splitSig.v), 32).slice(2), " ", (0, _hyperapp.h)("br", null), splitSig.r.slice(2), " ", (0, _hyperapp.h)("br", null), splitSig.s.slice(2)));
                   } catch (error) {
                     actions.error(error);
                   }
@@ -15055,7 +15110,7 @@ var actions = {
         }));
 
         return function (_x, _x2) {
-          return _ref.apply(this, arguments);
+          return _ref2.apply(this, arguments);
         };
       }()
     );
@@ -15174,6 +15229,10 @@ var Code = function Code() {
       }
     }, "Number"), (0, _hyperapp.h)(PageButton, {
       onclick: function onclick(e) {
+        return route('/units');
+      }
+    }, "Units"), (0, _hyperapp.h)(PageButton, {
+      onclick: function onclick(e) {
         return route('/abi');
       }
     }, "ABI"), (0, _hyperapp.h)(PageButton, {
@@ -15192,7 +15251,7 @@ var Code = function Code() {
       onclick: function onclick(e) {
         return route('/keys');
       }
-    }, "Signatures")), (0, _hyperapp.h)(_router.Route, {
+    }, "Keys/Signatures")), (0, _hyperapp.h)(_router.Route, {
       path: "/",
       render: function render() {
         return function () {
@@ -15249,7 +15308,15 @@ var Code = function Code() {
             onclick: actions.sig
           }, "Sig"), (0, _hyperapp.h)(Button, {
             onclick: actions.break32
-          }, "Break(32)"));
+          }, "Break(32)"), (0, _hyperapp.h)(Button, {
+            onclick: actions.break32Sig
+          }, "BreakWSig(32)"), (0, _hyperapp.h)("br", null), (0, _hyperapp.h)("br", null), (0, _hyperapp.h)(Button, {
+            onclick: actions.empty20
+          }, "Null(20 Bytes)"), (0, _hyperapp.h)(Button, {
+            onclick: actions.empty32
+          }, "Null(32 Bytes)"), (0, _hyperapp.h)(Button, {
+            onclick: actions.empty64
+          }, "Null(64 Bytes)"));
         };
       }
     }), (0, _hyperapp.h)(_router.Route, {
@@ -15274,14 +15341,38 @@ var Code = function Code() {
           }, ".toString(10)"), (0, _hyperapp.h)(Button, {
             onclick: actions.bignumber
           }, ".toString(16)"), (0, _hyperapp.h)(Button, {
-            onclick: actions.toWei
-          }, "Ether"), (0, _hyperapp.h)(Button, {
-            onclick: actions.toGWei
-          }, "Gwei"), (0, _hyperapp.h)(Button, {
-            onclick: actions.toEther
-          }, "Wei"), (0, _hyperapp.h)(Button, {
             onclick: actions.pad32Left
-          }, "Pad32(Left)"));
+          }, "Pad32(Left)"), (0, _hyperapp.h)("br", null), (0, _hyperapp.h)("br", null), (0, _hyperapp.h)(Button, {
+            onclick: actions.empty20
+          }, "Null(20 Bytes)"), (0, _hyperapp.h)(Button, {
+            onclick: actions.empty32
+          }, "Null(32 Bytes)"), (0, _hyperapp.h)(Button, {
+            onclick: actions.empty64
+          }, "Null(64 Bytes)"));
+        };
+      }
+    }), (0, _hyperapp.h)(_router.Route, {
+      path: "/units",
+      render: function render() {
+        return function () {
+          return (0, _hyperapp.h)("div", null, (0, _hyperapp.h)("h4", null, "Unit Tools"), (0, _hyperapp.h)("div", {
+            style: "position: relative;"
+          }, (0, _hyperapp.h)(TextArea, {
+            oninput: function oninput(e) {
+              return actions.change({
+                inputB: String(e.target.value || '').trim()
+              });
+            },
+            placeholder: "number data"
+          }), (0, _hyperapp.h)("div", {
+            style: "position: absolute; bottom: 10px; right: 10px;"
+          }, trimHexPrefix(state.inputB || '').length / 2, " bytes")), (0, _hyperapp.h)(Button, {
+            onclick: actions.toWei
+          }, "Ether -> Wei"), (0, _hyperapp.h)(Button, {
+            onclick: actions.toGWei
+          }, "Gwei -> Wei"), (0, _hyperapp.h)(Button, {
+            onclick: actions.toEther
+          }, "Wei -> Ether"));
         };
       }
     }), (0, _hyperapp.h)(_router.Route, {
@@ -15395,12 +15486,12 @@ var Code = function Code() {
             type: "text",
             id: "privKey",
             style: "padding: 15px;",
-            placeholder: "private key"
+            placeholder: "private key (0x)"
           }), (0, _hyperapp.h)("input", {
             type: "text",
             id: "message",
             style: "padding: 15px;",
-            placeholder: "message"
+            placeholder: "digest (0x)"
           }), " ", (0, _hyperapp.h)("br", null), (0, _hyperapp.h)("br", null), (0, _hyperapp.h)(Button, {
             onclick: function onclick() {
               return actions.sign({
@@ -15408,7 +15499,24 @@ var Code = function Code() {
                 message: document.getElementById('message').value
               });
             }
-          }, "Sign"));
+          }, "Sign Digest"), (0, _hyperapp.h)("br", null), (0, _hyperapp.h)("br", null), (0, _hyperapp.h)("br", null), (0, _hyperapp.h)("br", null), (0, _hyperapp.h)("b", null, "Recover Address"), " ", (0, _hyperapp.h)("br", null), (0, _hyperapp.h)("br", null), (0, _hyperapp.h)("input", {
+            type: "text",
+            id: "digest",
+            style: "padding: 15px;",
+            placeholder: "digest hash (0x)"
+          }), (0, _hyperapp.h)("input", {
+            type: "text",
+            id: "signature",
+            style: "padding: 15px;",
+            placeholder: "signature (0x)"
+          }), " ", (0, _hyperapp.h)("br", null), (0, _hyperapp.h)("br", null), (0, _hyperapp.h)(Button, {
+            onclick: function onclick() {
+              return actions.recoverAddress({
+                digest: document.getElementById('digest').value,
+                signature: document.getElementById('signature').value
+              });
+            }
+          }, "Recover Address"));
         };
       }
     })))), (0, _hyperapp.h)(Results, {
@@ -15439,6 +15547,9 @@ var Routes = function Routes() {
     render: Code
   }), (0, _hyperapp.h)(_router.Route, {
     path: "/hex",
+    render: Code
+  }), (0, _hyperapp.h)(_router.Route, {
+    path: "/units",
     render: Code
   }), (0, _hyperapp.h)(_router.Route, {
     path: "/date",
@@ -15491,7 +15602,7 @@ var parent = module.bundle.parent;
 if ((!parent || !parent.isParcelRequire) && typeof WebSocket !== 'undefined') {
   var hostname = "" || location.hostname;
   var protocol = location.protocol === 'https:' ? 'wss' : 'ws';
-  var ws = new WebSocket(protocol + '://' + hostname + ':' + "32873" + '/');
+  var ws = new WebSocket(protocol + '://' + hostname + ':' + "36845" + '/');
 
   ws.onmessage = function (event) {
     var data = JSON.parse(event.data);
